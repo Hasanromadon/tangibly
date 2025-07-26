@@ -16,8 +16,8 @@ export async function verifyPassword(
   return bcrypt.compare(password, hashedPassword);
 }
 
-export function generateToken(payload: object): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+export function generateToken(payload: object, expiresIn?: string): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: expiresIn || "7d" });
 }
 
 export function verifyToken(token: string): unknown {
