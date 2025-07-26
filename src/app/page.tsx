@@ -1,4 +1,13 @@
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 export default function Home() {
   return (
@@ -12,6 +21,28 @@ export default function Home() {
           height={38}
           priority
         />
+
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Welcome to Tangibly</CardTitle>
+            <CardDescription>
+              shadcn/ui has been successfully added to your Next.js project!
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">
+                Email
+              </label>
+              <Input id="email" type="email" placeholder="Enter your email" />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="default">Primary Button</Button>
+              <Button variant="outline">Secondary Button</Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
           <li className="mb-2 tracking-[-.01em]">
             Get started by editing{" "}
@@ -22,6 +53,9 @@ export default function Home() {
           </li>
           <li className="tracking-[-.01em]">
             Save and see your changes instantly.
+          </li>
+          <li className="tracking-[-.01em]">
+            shadcn/ui components are now ready to use!
           </li>
         </ol>
 
