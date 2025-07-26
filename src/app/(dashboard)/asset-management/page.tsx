@@ -58,7 +58,7 @@ function DashboardOverview() {
     <div className="space-y-6">
       <div className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
         <h1 className="mb-2 text-2xl font-bold">
-          Welcome back, {user?.fullName}!
+          Welcome back, {user?.firstName} {user?.lastName}!
         </h1>
         <p className="text-blue-100">
           {company?.name} - Asset Management Dashboard
@@ -337,7 +337,7 @@ export default function AssetManagementPage() {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">
-                  {user.fullName}
+                  {user.firstName} {user.lastName}
                 </p>
                 <p className="text-xs text-gray-600 capitalize">{user.role}</p>
               </div>

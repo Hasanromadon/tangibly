@@ -16,7 +16,8 @@ export interface RegisterData {
     address: string;
   };
   user: {
-    fullName: string;
+    firstName: string;
+    lastName: string;
     email: string;
     password: string;
   };
@@ -34,7 +35,8 @@ export interface AcceptInvitationData {
 
 export interface User {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
   companyId: string;
@@ -72,7 +74,8 @@ export interface InvitationData {
   isAccepted: boolean;
   createdAt: string;
   invitedBy: {
-    fullName: string;
+    firstName: string;
+    lastName: string;
   };
 }
 

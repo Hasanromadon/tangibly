@@ -5,19 +5,30 @@ import { useRouter, usePathname } from "next/navigation";
 
 interface User {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
   companyId: string;
   employeeId: string | null;
   permissions: string[];
+  isActive: boolean;
+  lastLogin: string | null;
+  createdAt: string;
 }
 
 interface Company {
   id: string;
   name: string;
   code: string;
+  npwp: string;
+  phone: string;
+  email: string;
+  address: string;
   subscriptionStatus: string;
+  subscriptionPlan: string;
+  subscriptionExpiresAt: string | null;
+  createdAt: string;
 }
 
 interface AuthContextType {

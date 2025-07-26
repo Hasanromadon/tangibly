@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
             subscriptionExpiresAt: true,
             isActive: true,
             settings: true,
+            createdAt: true,
           },
         },
       },
@@ -108,23 +109,43 @@ export async function POST(request: NextRequest) {
     // Return user data and token
     const userData = {
       id: user.id,
-      email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      email: user.email,
       role: user.role,
-      permissions: user.permissions,
-      department: user.department,
-      position: user.position,
-      avatarUrl: user.avatarUrl,
-      company: user.company,
-      lastLogin: new Date(),
+      companyId: user.companyId,
+      employeeId: user.employeeId,
+      permissions: Array.isArray(user.permissions) ? user.permissions : [],
+      isActive: user.isActive,
+      lastLogin: user.lastLogin?.toISOString() || null,
+      createdAt: user.createdAt.toISOString(),
+    };
+
+    const companyData = {
+      id: user.company.id,
+      name: user.company.name,
+      code: user.company.code,
+      npwp: "",
+      phone: "",
+      email: "",
+      address: "",
+      subscriptionStatus: "active",
+      subscriptionPlan: user.company.subscriptionPlan,
+      subscriptionExpiresAt:
+        user.company.subscriptionExpiresAt?.toISOString() || null,
+      createdAt: user.company.createdAt.toISOString(),
+    };
+
+    const authResponse = {
+      token,
+      user: userData,
+      company: companyData,
     };
 
     const response = NextResponse.json({
       success: true,
       message: "Login successful",
-      user: userData,
-      token,
+      data: authResponse,
     });
 
     // Set secure cookie if remember me is enabled

@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card";
 
 interface User {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
   isActive: boolean;
@@ -22,7 +23,8 @@ interface Invitation {
   isAccepted: boolean;
   createdAt: string;
   invitedBy: {
-    fullName: string;
+    firstName: string;
+    lastName: string;
   };
 }
 
@@ -42,7 +44,8 @@ export default function UserManagement() {
     const mockUsers: User[] = [
       {
         id: "1",
-        fullName: "John Doe",
+        firstName: "John",
+        lastName: "Doe",
         email: "admin@teknomai.co.id",
         role: "admin",
         isActive: true,
@@ -52,7 +55,8 @@ export default function UserManagement() {
       },
       {
         id: "2",
-        fullName: "Jane Smith",
+        firstName: "Jane",
+        lastName: "Smith",
         email: "user@teknomai.co.id",
         role: "user",
         isActive: true,
@@ -70,7 +74,8 @@ export default function UserManagement() {
         isAccepted: false,
         createdAt: new Date().toISOString(),
         invitedBy: {
-          fullName: "John Doe",
+          firstName: "John",
+          lastName: "Doe",
         },
       },
     ];
@@ -107,7 +112,8 @@ export default function UserManagement() {
             isAccepted: false,
             createdAt: data.invitation.createdAt,
             invitedBy: {
-              fullName: "Current User", // Replace with actual user name
+              firstName: "Current",
+              lastName: "User", // Replace with actual user name
             },
           },
           ...prev,
@@ -334,7 +340,7 @@ export default function UserManagement() {
                   <td className="px-4 py-3">
                     <div>
                       <div className="font-medium text-gray-900">
-                        {user.fullName}
+                        {user.firstName} {user.lastName}
                       </div>
                       <div className="text-sm text-gray-500">{user.email}</div>
                     </div>
@@ -439,7 +445,8 @@ export default function UserManagement() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-900">
-                        {invitation.invitedBy.fullName}
+                        {invitation.invitedBy.firstName}{" "}
+                        {invitation.invitedBy.lastName}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
                         {formatDate(invitation.createdAt)}

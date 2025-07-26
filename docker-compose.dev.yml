@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: tangibly_db_dev
+    environment:
+      POSTGRES_USER: tangibly_user
+      POSTGRES_PASSWORD: tangibly_pass
+      POSTGRES_DB: tangibly_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Next.js application in development mode
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: tangibly_app_dev
+    env_file:
+      - .env.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    command: npm run dev
+
+  # Optional: pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: tangibly_pgadmin_dev
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tangibly.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data_dev:

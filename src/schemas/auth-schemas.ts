@@ -56,14 +56,24 @@ export const companySchema = z.object({
 
 // User information schema
 export const userSchema = z.object({
-  fullName: z
+  firstName: z
     .string()
-    .min(1, "Full name is required")
-    .min(2, "Full name must be at least 2 characters")
-    .max(100, "Full name must not exceed 100 characters")
+    .min(1, "First name is required")
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name must not exceed 50 characters")
     .regex(
-      /^[a-zA-Z\s.'-]+$/,
-      "Full name can only contain letters, spaces, dots, apostrophes, and hyphens"
+      /^[a-zA-Z.'-]+$/,
+      "First name can only contain letters, dots, apostrophes, and hyphens"
+    ),
+
+  lastName: z
+    .string()
+    .min(1, "Last name is required")
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name must not exceed 50 characters")
+    .regex(
+      /^[a-zA-Z.'-]+$/,
+      "Last name can only contain letters, dots, apostrophes, and hyphens"
     ),
 
   email: emailSchema,
@@ -129,7 +139,8 @@ export const changePasswordSchema = z
 
 // User profile update schema
 export const updateProfileSchema = z.object({
-  fullName: userSchema.shape.fullName,
+  firstName: userSchema.shape.firstName,
+  lastName: userSchema.shape.lastName,
   email: emailSchema,
   phone: z
     .string()

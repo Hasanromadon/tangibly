@@ -15,7 +15,8 @@ export default function RegisterPage() {
     email: "",
     address: "",
     // Admin user data
-    fullName: "",
+    firstName: "",
+    lastName: "",
     userEmail: "",
     password: "",
     confirmPassword: "",
@@ -58,7 +59,8 @@ export default function RegisterPage() {
             address: formData.address,
           },
           user: {
-            fullName: formData.fullName,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
             email: formData.userEmail,
             password: formData.password,
           },
@@ -313,27 +315,53 @@ export default function RegisterPage() {
                 Administrator Account
               </h3>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="sm:col-span-2">
+                <div>
                   <label
-                    htmlFor="fullName"
+                    htmlFor="firstName"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Full Name *
+                    First Name *
                   </label>
                   <div className="mt-1">
                     <input
-                      id="fullName"
-                      name="fullName"
+                      id="firstName"
+                      name="firstName"
                       type="text"
                       required
-                      value={formData.fullName}
+                      value={formData.firstName}
                       onChange={handleChange}
                       className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm"
-                      placeholder="Your full name"
+                      placeholder="Your first name"
                     />
-                    {errors["user.fullName"] && (
+                    {errors["user.firstName"] && (
                       <p className="mt-1 text-sm text-red-600">
-                        {errors["user.fullName"]}
+                        {errors["user.firstName"]}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Last Name *
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id="lastName"
+                      name="lastName"
+                      type="text"
+                      required
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm"
+                      placeholder="Your last name"
+                    />
+                    {errors["user.lastName"] && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors["user.lastName"]}
                       </p>
                     )}
                   </div>
