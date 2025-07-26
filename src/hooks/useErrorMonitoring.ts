@@ -61,8 +61,11 @@ class FrontendErrorLogger {
 
   constructor() {
     this.sessionId = this.generateSessionId();
-    this.setupGlobalErrorHandlers();
-    this.setupOnlineStatusTracking();
+    // Only setup browser-specific handlers if we're in the browser
+    if (typeof window !== "undefined") {
+      this.setupGlobalErrorHandlers();
+      this.setupOnlineStatusTracking();
+    }
   }
 
   static getInstance(): FrontendErrorLogger {
@@ -157,31 +160,34 @@ class FrontendErrorLogger {
   }
 
   private getBaseContext(): Record<string, unknown> {
-    const context: Record<string, unknown> = {
-      route: window.location.pathname,
-      referrer: document.referrer,
-      viewport: {
+    const context: Record<string, unknown> = {};
+
+    // Only access browser globals if we're in the browser
+    if (typeof window !== "undefined") {
+      context.route = window.location.pathname;
+      context.referrer = document.referrer;
+      context.viewport = {
         width: window.innerWidth,
         height: window.innerHeight,
-      },
-    };
-
-    // Add memory info if available
-    if (performance.memory) {
-      const memory = performance.memory;
-      context.memory = {
-        usedJSHeapSize: memory.usedJSHeapSize,
-        totalJSHeapSize: memory.totalJSHeapSize,
       };
-    }
 
-    // Add connection info if available
-    if (navigator.connection) {
-      const connection = navigator.connection;
-      context.connection = {
-        effectiveType: connection.effectiveType,
-        downlink: connection.downlink,
-      };
+      // Add memory info if available
+      if (performance.memory) {
+        const memory = performance.memory;
+        context.memory = {
+          usedJSHeapSize: memory.usedJSHeapSize,
+          totalJSHeapSize: memory.totalJSHeapSize,
+        };
+      }
+
+      // Add connection info if available
+      if (navigator.connection) {
+        const connection = navigator.connection;
+        context.connection = {
+          effectiveType: connection.effectiveType,
+          downlink: connection.downlink,
+        };
+      }
     }
 
     return context;
@@ -198,8 +204,8 @@ class FrontendErrorLogger {
       message: error.message || "Unknown error",
       stack: error.stack,
       timestamp: new Date(),
-      url: window.location.href,
-      userAgent: navigator.userAgent,
+      url: typeof window !== "undefined" ? window.location.href : "ssr",
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "ssr",
       userId: this.userId,
       sessionId: this.sessionId,
       component: error.component,

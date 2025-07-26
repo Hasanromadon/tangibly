@@ -14,7 +14,7 @@ import {
 } from "@/lib/api-response";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Get single user
@@ -22,7 +22,7 @@ async function getUserHandler(request: NextRequest, { params }: RouteParams) {
   try {
     const currentUser = (request as unknown as { user: AuthenticatedUser })
       .user;
-    const { id } = params;
+    const { id } = await params;
 
     // Users can only access their own data unless they're admin
     if (currentUser.role !== "ADMIN" && currentUser.id !== id) {
@@ -67,7 +67,7 @@ async function updateUserHandler(
   try {
     const currentUser = (request as unknown as { user: AuthenticatedUser })
       .user;
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Users can only update their own data unless they're admin
@@ -115,7 +115,7 @@ async function deleteUserHandler(
   { params }: RouteParams
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     await prisma.user.delete({
       where: { id },

@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { NextRequest } from "next/server";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -16,8 +16,11 @@ export async function verifyPassword(
   return bcrypt.compare(password, hashedPassword);
 }
 
-export function generateToken(payload: object, expiresIn?: string): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: expiresIn || "7d" });
+export function generateToken(
+  payload: object,
+  expiresIn: string | number = "7d"
+): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn } as SignOptions);
 }
 
 export function verifyToken(token: string): unknown {

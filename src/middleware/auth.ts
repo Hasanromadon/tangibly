@@ -144,7 +144,7 @@ export async function authenticate(
         email: user.email,
         name: user.name,
         role: user.role,
-        lastLogin: user.lastLogin,
+        lastLogin: user.lastLogin ?? undefined,
       },
       error: null,
     };
@@ -206,8 +206,12 @@ export function requireAuth<T = unknown>(
   return async (request: NextRequest, context: T) => {
     const { user, error } = await authenticate(request);
 
-    if (error || !user) {
+    if (error) {
       return error;
+    }
+
+    if (!user) {
+      return unauthorizedResponse("Authentication failed");
     }
 
     // Add user to request context
@@ -223,8 +227,12 @@ export function requireAdmin<T = unknown>(
   return async (request: NextRequest, context: T) => {
     const { user, error } = await authenticate(request);
 
-    if (error || !user) {
+    if (error) {
       return error;
+    }
+
+    if (!user) {
+      return unauthorizedResponse("Authentication failed");
     }
 
     if (user.role !== "ADMIN") {
