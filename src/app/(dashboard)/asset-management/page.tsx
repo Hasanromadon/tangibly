@@ -1,555 +1,386 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Building2,
-  Package,
-  MapPin,
-  Wrench,
-  AlertTriangle,
-  CheckCircle,
-  DollarSign,
-  Users,
-} from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import UserManagement from "@/components/asset-management/UserManagement";
+import { useAuth, RoleGuard } from "@/contexts/AuthContext";
 
-interface DashboardMetrics {
-  totalAssets: number;
-  activeAssets: number;
-  maintenanceAssets: number;
-  criticalAssets: number;
-  totalValue: number;
-  depreciationThisMonth: number;
-  overdueMaintenances: number;
-  upcomingMaintenances: number;
-  complianceScore: number;
-  totalCompanies: number;
-  totalUsers: number;
-  totalLocations: number;
-}
-
-interface RecentAsset {
+interface TabConfig {
   id: string;
-  assetNumber: string;
-  name: string;
-  category: string;
-  status: string;
-  location: string;
-  createdAt: string;
+  label: string;
+  component: React.ComponentType;
+  requiredRoles?: string[];
+  requiredPermissions?: string[];
 }
 
-export default function AssetManagementDashboard() {
-  const [metrics, setMetrics] = useState<DashboardMetrics>({
-    totalAssets: 0,
-    activeAssets: 0,
-    maintenanceAssets: 0,
-    criticalAssets: 0,
-    totalValue: 0,
-    depreciationThisMonth: 0,
-    overdueMaintenances: 0,
-    upcomingMaintenances: 0,
-    complianceScore: 0,
-    totalCompanies: 0,
-    totalUsers: 0,
-    totalLocations: 0,
-  });
+const tabs: TabConfig[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    component: DashboardOverview,
+  },
+  {
+    id: "assets",
+    label: "Assets",
+    component: AssetList,
+  },
+  {
+    id: "maintenance",
+    label: "Maintenance",
+    component: MaintenanceSchedule,
+  },
+  {
+    id: "reports",
+    label: "Reports",
+    component: Reports,
+    requiredRoles: ["admin", "manager", "super_admin"],
+  },
+  {
+    id: "users",
+    label: "Users",
+    component: UserManagement,
+    requiredRoles: ["admin", "super_admin"],
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    component: Settings,
+    requiredRoles: ["admin", "super_admin"],
+  },
+];
 
-  const [recentAssets, setRecentAssets] = useState<RecentAsset[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate API calls - replace with real API calls
-    const fetchDashboardData = async () => {
-      try {
-        // Simulate loading
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Mock data for demonstration
-        setMetrics({
-          totalAssets: 1247,
-          activeAssets: 1098,
-          maintenanceAssets: 47,
-          criticalAssets: 23,
-          totalValue: 2450000000, // 2.45 billion IDR
-          depreciationThisMonth: 45000000, // 45 million IDR
-          overdueMaintenances: 12,
-          upcomingMaintenances: 38,
-          complianceScore: 94,
-          totalCompanies: 5,
-          totalUsers: 156,
-          totalLocations: 23,
-        });
-
-        setRecentAssets([
-          {
-            id: "1",
-            assetNumber: "LAP-2025-0001",
-            name: "Dell Laptop Latitude 5520",
-            category: "IT Equipment",
-            status: "active",
-            location: "Jakarta Office",
-            createdAt: "2025-01-15T10:30:00Z",
-          },
-          {
-            id: "2",
-            assetNumber: "VEH-2025-0001",
-            name: "Toyota Avanza 2024",
-            category: "Vehicle",
-            status: "active",
-            location: "Surabaya Branch",
-            createdAt: "2025-01-14T14:20:00Z",
-          },
-          {
-            id: "3",
-            assetNumber: "MAC-2025-0001",
-            name: "Production Machine Type A",
-            category: "Machinery",
-            status: "maintenance",
-            location: "Factory Bekasi",
-            createdAt: "2025-01-13T09:15:00Z",
-          },
-        ]);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusColors = {
-      active: "bg-green-100 text-green-800",
-      maintenance: "bg-yellow-100 text-yellow-800",
-      inactive: "bg-gray-100 text-gray-800",
-      disposed: "bg-red-100 text-red-800",
-    };
-    return (
-      statusColors[status as keyof typeof statusColors] ||
-      "bg-gray-100 text-gray-800"
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+// Placeholder components - replace with actual implementations
+function DashboardOverview() {
+  const { user, company } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        {/* Header */}
-        <div className="rounded-lg bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Asset Management Dashboard
-              </h1>
-              <p className="mt-2 text-gray-600">
-                Comprehensive SAAS platform for Indonesian enterprise asset
-                management
+    <div className="space-y-6">
+      <div className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+        <h1 className="mb-2 text-2xl font-bold">
+          Welcome back, {user?.fullName}!
+        </h1>
+        <p className="text-blue-100">
+          {company?.name} - Asset Management Dashboard
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-6">
+          <div className="flex items-center">
+            <div className="rounded-lg bg-blue-100 p-2">
+              <svg
+                className="h-6 w-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Assets</p>
+              <p className="text-2xl font-bold text-gray-900">1,234</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center">
+            <div className="rounded-lg bg-green-100 p-2">
+              <svg
+                className="h-6 w-6 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Active Assets</p>
+              <p className="text-2xl font-bold text-gray-900">1,150</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center">
+            <div className="rounded-lg bg-yellow-100 p-2">
+              <svg
+                className="h-6 w-6 text-yellow-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">
+                Needs Maintenance
               </p>
+              <p className="text-2xl font-bold text-gray-900">23</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center">
+            <div className="rounded-lg bg-red-100 p-2">
+              <svg
+                className="h-6 w-6 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">
+                Out of Service
+              </p>
+              <p className="text-2xl font-bold text-gray-900">61</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card className="p-6">
+          <h3 className="mb-4 text-lg font-semibold">Recent Activities</h3>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  Asset LAP001 maintenance completed
+                </p>
+                <p className="text-xs text-gray-500">2 hours ago</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  New asset PRN003 added to inventory
+                </p>
+                <p className="text-xs text-gray-500">4 hours ago</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  Asset DES002 requires maintenance
+                </p>
+                <p className="text-xs text-gray-500">1 day ago</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="mb-4 text-lg font-semibold">Upcoming Maintenance</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+              <div>
+                <p className="font-medium">Server Rack A1</p>
+                <p className="text-sm text-gray-600">Scheduled cleaning</p>
+              </div>
+              <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800">
+                Tomorrow
+              </span>
+            </div>
+            <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+              <div>
+                <p className="font-medium">Printer HP-001</p>
+                <p className="text-sm text-gray-600">Regular maintenance</p>
+              </div>
+              <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                3 days
+              </span>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function AssetList() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Asset Management</h1>
+        <Button className="bg-blue-600 text-white hover:bg-blue-700">
+          Add New Asset
+        </Button>
+      </div>
+      <Card className="p-6">
+        <p className="text-gray-600">
+          Asset list and management functionality will be implemented here.
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+function MaintenanceSchedule() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-gray-900">Maintenance Schedule</h1>
+      <Card className="p-6">
+        <p className="text-gray-600">
+          Maintenance scheduling and tracking functionality will be implemented
+          here.
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+function Reports() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+      <Card className="p-6">
+        <p className="text-gray-600">
+          Reporting and analytics functionality will be implemented here.
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+function Settings() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-gray-900">Company Settings</h1>
+      <Card className="p-6">
+        <p className="text-gray-600">
+          Company settings and configuration will be implemented here.
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+export default function AssetManagementPage() {
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const { user, logout } = useAuth();
+
+  if (!user) {
+    return null; // Will be handled by AuthProvider redirect
+  }
+
+  // Filter tabs based on user role and permissions
+  const visibleTabs = tabs.filter(tab => {
+    if (tab.requiredRoles && !tab.requiredRoles.includes(user.role)) {
+      return false;
+    }
+    // Add permission checks here if needed
+    return true;
+  });
+
+  const ActiveComponent =
+    tabs.find(tab => tab.id === activeTab)?.component || DashboardOverview;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="border-b bg-white shadow-sm">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="rounded-full bg-blue-600 p-2">
+                <svg
+                  className="h-6 w-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Tangibly</h1>
+                <p className="text-sm text-gray-600">Asset Management System</p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="px-3 py-1">
-                ISO 27001 Compliant
-              </Badge>
-              <Badge variant="outline" className="px-3 py-1">
-                ISO 14001 Certified
-              </Badge>
-              <Badge variant="outline" className="px-3 py-1">
-                PSAK 16 Ready
-              </Badge>
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">
+                  {user.fullName}
+                </p>
+                <p className="text-xs text-gray-600 capitalize">{user.role}</p>
+              </div>
+              <Button
+                onClick={logout}
+                variant="outline"
+                size="sm"
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Sign Out
+              </Button>
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Key Metrics Cards */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Assets
-              </CardTitle>
-              <Package className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metrics.totalAssets.toLocaleString()}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                {metrics.activeAssets} active, {metrics.maintenanceAssets} in
-                maintenance
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Asset Value
-              </CardTitle>
-              <DollarSign className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(metrics.totalValue)}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                -{formatCurrency(metrics.depreciationThisMonth)} this month
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Maintenance Status
-              </CardTitle>
-              <Wrench className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {metrics.overdueMaintenances}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                {metrics.upcomingMaintenances} upcoming this month
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Compliance Score
-              </CardTitle>
-              <CheckCircle className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {metrics.complianceScore}%
-              </div>
-              <p className="text-muted-foreground text-xs">
-                ISO & Indonesian standards
-              </p>
-            </CardContent>
-          </Card>
+      {/* Navigation Tabs */}
+      <nav className="border-b bg-white">
+        <div className="px-6">
+          <div className="flex space-x-8">
+            {visibleTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`border-b-2 px-1 py-4 text-sm font-medium ${
+                  activeTab === tab.id
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
+      </nav>
 
-        {/* Detailed Analytics */}
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="bg-white">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="assets">Assets</TabsTrigger>
-            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-            <TabsTrigger value="compliance">Compliance</TabsTrigger>
-            <TabsTrigger value="financial">Financial</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              {/* Company & User Statistics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>System Statistics</CardTitle>
-                  <CardDescription>
-                    Multi-tenant SAAS platform overview
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Building2 className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm">Active Companies</span>
-                    </div>
-                    <span className="font-semibold">
-                      {metrics.totalCompanies}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Users className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">Total Users</span>
-                    </div>
-                    <span className="font-semibold">{metrics.totalUsers}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm">Total Locations</span>
-                    </div>
-                    <span className="font-semibold">
-                      {metrics.totalLocations}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
-                      <span className="text-sm">Critical Assets</span>
-                    </div>
-                    <span className="font-semibold text-red-600">
-                      {metrics.criticalAssets}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recent Assets */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Assets</CardTitle>
-                  <CardDescription>
-                    Latest assets added to the system
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentAssets.map(asset => (
-                      <div
-                        key={asset.id}
-                        className="flex items-center justify-between rounded-lg border p-2"
-                      >
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">
-                            {asset.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {asset.assetNumber} • {asset.location}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge
-                            className={`text-xs ${getStatusBadge(asset.status)}`}
-                          >
-                            {asset.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="assets" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Asset Management Features</CardTitle>
-                <CardDescription>
-                  Comprehensive asset lifecycle management
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">QR Code Scanning</h3>
-                    <p className="text-sm text-gray-600">
-                      Mobile-first asset identification and tracking with QR
-                      codes
-                    </p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">
-                      Depreciation Calculation
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      PSAK 16 compliant depreciation with multiple methods
-                    </p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">Asset Transfer</h3>
-                    <p className="text-sm text-gray-600">
-                      Seamless asset movement tracking with approval workflows
-                    </p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">
-                      Multi-location Support
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Hierarchical location management for enterprise scale
-                    </p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">Custom Categories</h3>
-                    <p className="text-sm text-gray-600">
-                      Flexible asset categorization with custom fields
-                    </p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">Audit Trail</h3>
-                    <p className="text-sm text-gray-600">
-                      Complete audit logging for compliance and security
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="maintenance" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Maintenance Management</CardTitle>
-                <CardDescription>
-                  Preventive and corrective maintenance scheduling
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">
-                      Work Order Management
-                    </h3>
-                    <p className="mb-4 text-sm text-gray-600">
-                      Complete work order lifecycle from creation to completion
-                    </p>
-                    <ul className="space-y-1 text-sm text-gray-600">
-                      <li>• Preventive maintenance scheduling</li>
-                      <li>• Emergency work orders</li>
-                      <li>• Vendor coordination</li>
-                      <li>• Parts and labor tracking</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">
-                      Maintenance Analytics
-                    </h3>
-                    <p className="mb-4 text-sm text-gray-600">
-                      Data-driven insights for maintenance optimization
-                    </p>
-                    <ul className="space-y-1 text-sm text-gray-600">
-                      <li>• MTBF (Mean Time Between Failures)</li>
-                      <li>• MTTR (Mean Time To Repair)</li>
-                      <li>• Cost analysis and budgeting</li>
-                      <li>• Performance trending</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="compliance" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Compliance & Standards</CardTitle>
-                <CardDescription>
-                  ISO standards and Indonesian regulatory compliance
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold text-blue-600">
-                      ISO 27001
-                    </h3>
-                    <p className="mb-2 text-sm text-gray-600">
-                      Information Security Management
-                    </p>
-                    <ul className="space-y-1 text-xs text-gray-600">
-                      <li>• IT asset inventory</li>
-                      <li>• Risk assessment</li>
-                      <li>• Access control</li>
-                      <li>• Incident tracking</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold text-green-600">
-                      ISO 14001
-                    </h3>
-                    <p className="mb-2 text-sm text-gray-600">
-                      Environmental Management
-                    </p>
-                    <ul className="space-y-1 text-xs text-gray-600">
-                      <li>• Environmental impact tracking</li>
-                      <li>• Waste management</li>
-                      <li>• Energy consumption</li>
-                      <li>• Carbon footprint</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold text-purple-600">
-                      Indonesian Standards
-                    </h3>
-                    <p className="mb-2 text-sm text-gray-600">
-                      Local regulatory compliance
-                    </p>
-                    <ul className="space-y-1 text-xs text-gray-600">
-                      <li>• PSAK 16 depreciation</li>
-                      <li>• Tax regulation compliance</li>
-                      <li>• NPWP integration</li>
-                      <li>• Local reporting formats</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="financial" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Financial Management</CardTitle>
-                <CardDescription>
-                  Asset valuation and depreciation tracking
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">Depreciation Methods</h3>
-                    <p className="mb-4 text-sm text-gray-600">
-                      Multiple depreciation methods compliant with Indonesian
-                      accounting standards
-                    </p>
-                    <ul className="space-y-1 text-sm text-gray-600">
-                      <li>• Straight-line method</li>
-                      <li>• Declining balance method</li>
-                      <li>• Units of production method</li>
-                      <li>• Custom depreciation schedules</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-2 font-semibold">Financial Reporting</h3>
-                    <p className="mb-4 text-sm text-gray-600">
-                      Comprehensive financial reports for asset management
-                    </p>
-                    <ul className="space-y-1 text-sm text-gray-600">
-                      <li>• Asset register reports</li>
-                      <li>• Depreciation schedules</li>
-                      <li>• Tax depreciation reports</li>
-                      <li>• Insurance valuation reports</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+      {/* Main Content */}
+      <main className="flex-1">
+        <div className="p-6">
+          <ActiveComponent />
+        </div>
+      </main>
     </div>
   );
 }

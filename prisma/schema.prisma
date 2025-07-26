@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // Multi-tenant Companies
@@ -35,6 +35,7 @@ model Company {
 
   // Relations
   users           User[]
+  userInvitations UserInvitation[]
   assets          Asset[]
   assetCategories AssetCategory[]
   locations       Location[]
@@ -82,8 +83,32 @@ model User {
   fromMovements       AssetMovement[] @relation("MovementFromUser")
   toMovements         AssetMovement[] @relation("MovementToUser")
   auditLogs           AuditLog[]
+  sentInvitations     UserInvitation[] @relation("UserInviter")
 
   @@map("users")
+}
+
+// User Invitations for multi-tenant system
+model UserInvitation {
+  id            String   @id @default(uuid())
+  companyId     String   @map("company_id")
+  email         String
+  role          String   @default("user")
+  permissions   Json     @default("[]")
+  invitedBy     String   @map("invited_by")
+  token         String   @unique
+  isAccepted    Boolean  @default(false) @map("is_accepted")
+  expiresAt     DateTime @map("expires_at")
+  acceptedAt    DateTime? @map("accepted_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inviter   User    @relation("UserInviter", fields: [invitedBy], references: [id])
+
+  @@map("user_invitations")
+  @@unique([companyId, email])
 }
 
 // Asset Categories (ISO compliant)
@@ -97,7 +122,7 @@ model AssetCategory {
   color                    String?
   depreciationMethod       String  @default("straight_line") @map("depreciation_method")
   usefulLifeYears          Int?    @map("useful_life_years")
-  salvageValuePercentage   Decimal @default(0) @map("salvage_value_percentage") @db.Decimal(5, 2)
+  salvageValuePercentage   Float   @default(0) @map("salvage_value_percentage")
   isItAsset                Boolean @default(false) @map("is_it_asset")
   isEnvironmentalAsset     Boolean @default(false) @map("is_environmental_asset")
   parentId                 String? @map("parent_id")
@@ -203,18 +228,18 @@ model Asset {
   qrCode                    String?   @map("qr_code")
   
   // Financial Information
-  purchaseCost              Decimal?  @map("purchase_cost") @db.Decimal(15, 2)
-  purchaseDate              DateTime? @map("purchase_date") @db.Date
+  purchaseCost              Float?    @map("purchase_cost")
+  purchaseDate              DateTime? @map("purchase_date")
   purchaseOrderNumber       String?   @map("purchase_order_number")
   invoiceNumber             String?   @map("invoice_number")
-  warrantyExpiresAt         DateTime? @map("warranty_expires_at") @db.Date
+  warrantyExpiresAt         DateTime? @map("warranty_expires_at")
   
   // Depreciation
   depreciationMethod        String    @default("straight_line") @map("depreciation_method")
   usefulLifeYears           Int?      @map("useful_life_years")
-  salvageValue              Decimal   @default(0) @map("salvage_value") @db.Decimal(15, 2)
-  accumulatedDepreciation   Decimal   @default(0) @map("accumulated_depreciation") @db.Decimal(15, 2)
-  bookValue                 Decimal?  @map("book_value") @db.Decimal(15, 2)
+  salvageValue              Float     @default(0) @map("salvage_value")
+  accumulatedDepreciation   Float     @default(0) @map("accumulated_depreciation")
+  bookValue                 Float?    @map("book_value")
   
   // Status and Lifecycle
   status                    String    @default("active") // active, inactive, maintenance, disposed, stolen, lost
@@ -305,7 +330,7 @@ model MaintenanceType {
   name                   String
   description            String?
   category               String? // preventive, corrective, predictive
-  defaultFrequencyDays   Int?    @map("default_frequency_days")
+  defaultFrequencyDays   Int?     @map("default_frequency_days")
   estimatedDurationHours Decimal? @map("estimated_duration_hours") @db.Decimal(5, 2)
   defaultCost            Decimal? @map("default_cost") @db.Decimal(12, 2)
   requiredSkills         String[] @map("required_skills")

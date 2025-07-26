@@ -63,8 +63,6 @@ const createAssetSchema = z.object({
   notes: z.string().optional(),
 });
 
-const updateAssetSchema = createAssetSchema.partial();
-
 // Helper function to generate asset number
 async function generateAssetNumber(
   companyId: string,
@@ -256,6 +254,7 @@ export async function POST(request: NextRequest) {
         warrantyExpiresAt: validatedData.warrantyExpiresAt
           ? new Date(validatedData.warrantyExpiresAt)
           : undefined,
+        customFields: JSON.parse(JSON.stringify(validatedData.customFields)), // Convert to proper JsonValue
         // For demo, set a demo user as creator
         createdBy: "demo-user-id",
       },

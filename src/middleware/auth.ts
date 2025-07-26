@@ -109,7 +109,8 @@ export async function authenticate(
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         role: true,
         lastLogin: true,
       },
@@ -142,7 +143,7 @@ export async function authenticate(
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        name: `${user.firstName} ${user.lastName}`.trim(),
         role: user.role,
         lastLogin: user.lastLogin ?? undefined,
       },

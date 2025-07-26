@@ -1,0 +1,277 @@
+# Tangibly Authentication System - React Hook Form & React Query Implementation
+
+## ✅ **Completed Standardized Components**
+
+### 🔧 **Core Infrastructure**
+
+- ✅ **BaseApiClient** - Axios-based HTTP client with interceptors
+- ✅ **AuthApiService** - Authentication API service extending BaseApiClient
+- ✅ **React Query Hooks** - Standardized hooks for login, register, invite users
+- ✅ **Zod Validation Schemas** - Type-safe form validation with Indonesian standards
+- ✅ **Form Field Components** - Reusable form components with React Hook Form
+
+### 🎯 **SOLID Principles Implementation**
+
+#### 1. **Single Responsibility Principle**
+
+- `BaseApiClient` - Only handles HTTP communication
+- `AuthApiService` - Only handles authentication API calls
+- `useLogin` hook - Only handles login logic
+- Form field components - Each handles one input type
+
+#### 2. **Open/Closed Principle**
+
+- `BaseApiClient` can be extended for new services
+- Form field components accept props for customization
+- API services can add new endpoints without changing base class
+
+#### 3. **Liskov Substitution Principle**
+
+- All form field components implement consistent interfaces
+- Any `BaseApiClient` subclass can replace the base client
+
+#### 4. **Interface Segregation Principle**
+
+- Separate hooks for different auth operations (login, register, invite)
+- Small, focused prop interfaces for form components
+- Specific API response types for each operation
+
+#### 5. **Dependency Inversion Principle**
+
+- Components depend on hooks (abstractions) not direct API calls
+- Services inject dependencies through constructor parameters
+- High-level auth logic doesn't depend on low-level HTTP details
+
+### 📁 **Standardized File Structure**
+
+```
+src/
+├── lib/
+│   ├── api-client.ts           # Base HTTP client (98 lines)
+│   └── utils.ts                # Utility functions
+├── services/
+│   └── auth-api.ts             # Authentication API service (94 lines)
+├── hooks/
+│   └── useAuth.ts              # React Query auth hooks (145 lines)
+├── schemas/
+│   └── auth-schemas.ts         # Zod validation schemas (162 lines)
+├── components/
+│   ├── ui/                     # Base UI components
+│   │   ├── form.tsx           # Form context provider
+│   │   ├── label.tsx          # Label component
+│   │   ├── textarea.tsx       # Textarea component
+│   │   ├── checkbox.tsx       # Checkbox component
+│   │   └── select.tsx         # Select component
+│   └── forms/
+│       └── FormFields.tsx     # Reusable form field components (335 lines)
+├── contexts/
+│   └── AuthContext.tsx        # Authentication context (280 lines)
+└── app/
+    └── auth/
+        ├── login/
+        │   └── page.tsx       # Login page with React Hook Form
+        ├── register/
+        │   └── page.tsx       # Registration page
+        └── accept-invitation/
+            └── page.tsx       # Accept invitation page
+```
+
+### 🔐 **Authentication Features**
+
+#### **Multi-tenant Architecture**
+
+- Company-scoped authentication
+- Role-based access control (super_admin, admin, manager, user, viewer)
+- User invitation system with email verification
+- Employee ID auto-generation
+
+#### **Indonesian Business Standards**
+
+- NPWP validation and auto-formatting (XX.XXX.XXX.X-XXX.XXX)
+- Indonesian phone number validation (+62, 08xx formats)
+- Indonesian business requirements compliance
+
+#### **Security Features**
+
+- JWT token-based authentication
+- Request/response interceptors for auth headers
+- Automatic token refresh handling
+- Rate limiting and error handling
+
+### 🎨 **Form Implementation Standards**
+
+#### **React Hook Form + Zod Pattern**
+
+```typescript
+// 1. Define Zod schema
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required"),
+  remember: z.boolean().optional(),
+});
+
+// 2. Create form with validation
+const form = useForm<LoginFormData>({
+  resolver: zodResolver(loginSchema),
+  defaultValues: { email: "", password: "", remember: false },
+});
+
+// 3. Use React Query for submission
+const loginMutation = useLogin();
+
+// 4. Handle form submission
+const onSubmit = async (data: LoginFormData) => {
+  try {
+    await loginMutation.mutateAsync(data);
+  } catch (error) {
+    // Error handling is done in the hook
+  }
+};
+```
+
+#### **Standardized Form Fields**
+
+```typescript
+<TextField
+  control={form.control}
+  name="email"
+  label="Email address"
+  type="email"
+  placeholder="Enter your email"
+  required
+/>
+
+<NPWPField
+  control={form.control}
+  name="npwp"
+  label="NPWP"
+  placeholder="XX.XXX.XXX.X-XXX.XXX"
+  required
+/>
+
+<SelectField
+  control={form.control}
+  name="role"
+  label="Role"
+  options={[
+    { value: 'user', label: 'User' },
+    { value: 'admin', label: 'Admin' },
+  ]}
+  required
+/>
+```
+
+### 🔄 **React Query Patterns**
+
+#### **Mutations for State Changes**
+
+- `useLogin()` - Login with credentials
+- `useRegister()` - Register company and admin user
+- `useInviteUser()` - Send user invitation
+- `useAcceptInvitation()` - Accept invitation and set password
+
+#### **Queries for Data Fetching**
+
+- `useVerifyInvitation(token)` - Verify invitation token
+- Cache management with query keys
+- Automatic error handling and retry logic
+
+#### **Error Handling Strategy**
+
+- API errors mapped to form field errors
+- Toast notifications for user feedback
+- Graceful fallbacks for network issues
+- Validation errors displayed inline
+
+### 📋 **Usage Guidelines for AI Agents**
+
+#### **Creating New Features - Follow This Pattern:**
+
+1. **Create API Service**
+
+```typescript
+// src/services/feature-api.ts
+export class FeatureApiService extends BaseApiClient {
+  private readonly endpoints = {
+    list: "/feature",
+    create: "/feature",
+    update: "/feature",
+  } as const;
+
+  async list(): Promise<ApiResponse<Feature[]>> {
+    return this.get<Feature[]>(this.endpoints.list);
+  }
+}
+```
+
+2. **Create React Query Hooks**
+
+```typescript
+// src/hooks/useFeature.ts
+export function useCreateFeature() {
+  return useMutation<Feature, ApiError, CreateFeatureData>({
+    mutationFn: async data => {
+      const response = await featureApiService.create(data);
+      if (!response.success) throw new Error(response.error);
+      return response.data!;
+    },
+    onSuccess: () => toast.success("Feature created!"),
+    onError: error => toast.error(error.message),
+  });
+}
+```
+
+3. **Create Validation Schema**
+
+```typescript
+// src/schemas/feature-schemas.ts
+export const createFeatureSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+});
+
+export type CreateFeatureFormData = z.infer<typeof createFeatureSchema>;
+```
+
+4. **Create Form Component**
+
+```typescript
+// src/components/forms/FeatureForm.tsx
+export function FeatureForm() {
+  const form = useForm<CreateFeatureFormData>({
+    resolver: zodResolver(createFeatureSchema),
+  })
+
+  const createMutation = useCreateFeature()
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(createMutation.mutateAsync)}>
+        <TextField control={form.control} name="name" label="Name" required />
+        <Button type="submit" disabled={createMutation.isPending}>
+          {createMutation.isPending ? 'Creating...' : 'Create'}
+        </Button>
+      </form>
+    </Form>
+  )
+}
+```
+
+### 🚀 **Benefits of This Architecture**
+
+1. **Type Safety** - Full TypeScript support with runtime validation
+2. **Reusability** - Consistent patterns across all features
+3. **Maintainability** - Clear separation of concerns
+4. **Performance** - Optimized caching and loading states
+5. **User Experience** - Smooth interactions with proper feedback
+6. **Developer Experience** - Easy to understand and extend
+
+### 🔧 **Next Steps for Implementation**
+
+1. ✅ Core infrastructure is complete
+2. 🔄 Update remaining auth pages to use new patterns
+3. 🔄 Create user management features with same patterns
+4. 🔄 Implement asset management following these standards
+5. 🔄 Add comprehensive error handling and monitoring
+
+This standardized architecture provides a solid foundation for building scalable, maintainable React applications with proper form handling, API integration, and state management.

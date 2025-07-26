@@ -15,9 +15,11 @@ async function getUsersHandler() {
       select: {
         id: true,
         email: true,
-        name: true,
-        avatar: true,
+        firstName: true,
+        lastName: true,
+        avatarUrl: true,
         role: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -65,17 +67,21 @@ async function createUserHandler(request: NextRequest) {
     const tempPassword = Math.random().toString(36).slice(-8);
     const user = await prisma.user.create({
       data: {
+        companyId: "demo-company-id", // In real app, get from authenticated user
         email,
-        name,
-        password: tempPassword, // In real app, you'd hash this and send email
+        firstName: name.split(" ")[0] || name,
+        lastName: name.split(" ").slice(1).join(" ") || "",
+        passwordHash: tempPassword, // In real app, you'd hash this and send email
         role,
       },
       select: {
         id: true,
         email: true,
-        name: true,
-        avatar: true,
+        firstName: true,
+        lastName: true,
+        avatarUrl: true,
         role: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },

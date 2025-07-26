@@ -1,15 +1,9 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/database/prisma";
+import { PrismaClient } from "@prisma/client";
 import { verifyPassword, generateToken } from "@/lib/auth";
-import {
-  successResponse,
-  errorResponse,
-  validationErrorResponse,
-} from "@/lib/api-response";
-import { authRateLimit } from "@/middleware/rate-limit";
-import { SecurityMiddleware } from "@/middleware/security";
-import { trackFailedLogin } from "@/middleware/auth";
+
+const prisma = new PrismaClient();
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address").toLowerCase(),
@@ -19,106 +13,118 @@ const loginSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Apply rate limiting
-    const rateLimitResult = await authRateLimit(request);
-    if (rateLimitResult) {
-      return rateLimitResult;
-    }
-
-    // Apply CSRF protection
-    const csrfResult = SecurityMiddleware.csrfProtection(request);
-    if (csrfResult) {
-      return csrfResult;
-    }
-
     const body = await request.json();
-
-    // Sanitize and validate input
-    const sanitizedBody = SecurityMiddleware.sanitizeInput(body);
-    const validation = loginSchema.safeParse(sanitizedBody);
+    const validation = loginSchema.safeParse(body);
 
     if (!validation.success) {
-      return validationErrorResponse(validation.error.issues);
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.issues },
+        { status: 400 }
+      );
     }
 
     const { email, password, remember } = validation.data;
 
-    // Validate against SQL injection patterns
-    if (!SecurityMiddleware.validateSQLInput(email)) {
-      return errorResponse("Invalid input detected", 400);
-    }
-
-    // Find user
+    // Find user with company information
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            subscriptionPlan: true,
+            subscriptionExpiresAt: true,
+            isActive: true,
+            settings: true,
+          },
+        },
+      },
     });
 
     if (!user) {
-      // Track failed attempt even for non-existent users
-      trackFailedLogin(email, request);
-      return errorResponse("Invalid credentials", 401);
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    // Check if user account is active
+    if (!user.isActive) {
+      return NextResponse.json(
+        { error: "Account is deactivated" },
+        { status: 401 }
+      );
+    }
+
+    // Check if company is active
+    if (!user.company.isActive) {
+      return NextResponse.json(
+        { error: "Company account is suspended" },
+        { status: 401 }
+      );
+    }
+
+    // Check subscription status
+    if (
+      user.company.subscriptionExpiresAt &&
+      new Date() > user.company.subscriptionExpiresAt
+    ) {
+      return NextResponse.json(
+        { error: "Company subscription has expired" },
+        { status: 401 }
+      );
     }
 
     // Verify password
-    const isValidPassword = await verifyPassword(password, user.password);
+    const isValidPassword = await verifyPassword(password, user.passwordHash);
     if (!isValidPassword) {
-      trackFailedLogin(user.id, request);
-      return errorResponse("Invalid credentials", 401);
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
     }
-
-    // Generate token with appropriate expiration
-    const expiresIn = remember ? "30d" : "1d";
-    const token = generateToken({ userId: user.id }, expiresIn);
-
-    // Create session with security info
-    const clientIP =
-      request.headers.get("x-forwarded-for")?.split(",")[0] ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
-    const userAgent = request.headers.get("user-agent") || "unknown";
-
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        token,
-        expiresAt: new Date(
-          Date.now() + (remember ? 30 : 1) * 24 * 60 * 60 * 1000
-        ),
-        ipAddress: clientIP,
-        userAgent: userAgent,
-      },
-    });
 
     // Update last login
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        lastLogin: new Date(),
-      },
+      data: { lastLogin: new Date() },
     });
 
-    // Return user data (excluding password)
+    // Generate JWT token
+    const expiresIn = remember ? "30d" : "7d";
+    const token = generateToken(
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        companyId: user.companyId,
+        permissions: user.permissions,
+      },
+      expiresIn
+    );
+
+    // Return user data and token
     const userData = {
       id: user.id,
       email: user.email,
-      name: user.name,
-      avatar: user.avatar,
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: user.role,
+      permissions: user.permissions,
+      department: user.department,
+      position: user.position,
+      avatarUrl: user.avatarUrl,
+      company: user.company,
       lastLogin: new Date(),
     };
 
-    const response = successResponse(
-      {
-        user: userData,
-        token,
-      },
-      "Login successful"
-    );
-
-    // Set secure headers
-    const securityHeaders = SecurityMiddleware.getSecurityHeaders();
-    Object.entries(securityHeaders).forEach(([key, value]) => {
-      response.headers.set(key, value);
+    const response = NextResponse.json({
+      success: true,
+      message: "Login successful",
+      user: userData,
+      token,
     });
 
     // Set secure cookie if remember me is enabled
@@ -132,6 +138,11 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Login error:", error);
-    return errorResponse("Internal server error");
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
   }
 }

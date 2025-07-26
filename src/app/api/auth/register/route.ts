@@ -1,83 +1,237 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/database/prisma";
-import { hashPassword, generateToken } from "@/lib/auth";
+import { PrismaClient } from "@prisma/client";
 import {
-  successResponse,
-  errorResponse,
-  validationErrorResponse,
-} from "@/lib/api-response";
+  hashPassword,
+  generateToken,
+  validateNPWP,
+  validatePhone,
+} from "@/lib/auth";
+
+const prisma = new PrismaClient();
 
 const registerSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  // Company information
+  companyName: z.string().min(2, "Company name must be at least 2 characters"),
+  companyCode: z
+    .string()
+    .min(2, "Company code must be at least 2 characters")
+    .max(10, "Company code must be at most 10 characters"),
+  industry: z.string().optional(),
+  taxId: z.string().optional(), // NPWP for Indonesian companies
+  companyEmail: z.string().email("Invalid company email").optional(),
+  companyPhone: z.string().optional(),
+
+  // Company address
+  address: z.string().optional(),
+  city: z.string().optional(),
+  province: z.string().optional(),
+  postalCode: z.string().optional(),
+
+  // Admin user information
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.string().email("Invalid email address").toLowerCase(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+    ),
+  phone: z.string().optional(),
+  department: z.string().optional(),
+  position: z.string().optional(),
+
+  // Subscription plan
+  subscriptionPlan: z
+    .enum(["starter", "professional", "enterprise"])
+    .default("starter"),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-
-    // Validate input
     const validation = registerSchema.safeParse(body);
+
     if (!validation.success) {
-      return validationErrorResponse(validation.error.issues);
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.issues },
+        { status: 400 }
+      );
     }
 
-    const { email, name, password } = validation.data;
+    const {
+      companyName,
+      companyCode,
+      industry,
+      taxId,
+      companyEmail,
+      companyPhone,
+      address,
+      city,
+      province,
+      postalCode,
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      department,
+      position,
+      subscriptionPlan,
+    } = validation.data;
 
-    // Check if user already exists
+    // Validate Indonesian NPWP if provided
+    if (taxId && !validateNPWP(taxId)) {
+      return NextResponse.json(
+        { error: "Invalid NPWP format. Use format: XX.XXX.XXX.X-XXX.XXX" },
+        { status: 400 }
+      );
+    }
+
+    // Validate phone number if provided
+    if (phone && !validatePhone(phone)) {
+      return NextResponse.json(
+        { error: "Invalid Indonesian phone number format" },
+        { status: 400 }
+      );
+    }
+
+    // Check if email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
-      return errorResponse("User already exists", 409);
+      return NextResponse.json(
+        { error: "Email address is already registered" },
+        { status: 409 }
+      );
+    }
+
+    // Check if company code already exists
+    const existingCompany = await prisma.company.findUnique({
+      where: { code: companyCode },
+    });
+
+    if (existingCompany) {
+      return NextResponse.json(
+        { error: "Company code is already taken" },
+        { status: 409 }
+      );
     }
 
     // Hash password
-    const hashedPassword = await hashPassword(password);
+    const passwordHash = await hashPassword(password);
 
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        name,
-        password: hashedPassword,
-      },
+    // Create company and admin user in a transaction
+    const result = await prisma.$transaction(async tx => {
+      // Create company
+      const company = await tx.company.create({
+        data: {
+          name: companyName,
+          code: companyCode,
+          industry,
+          taxId,
+          email: companyEmail,
+          phone: companyPhone,
+          address,
+          city,
+          province,
+          postalCode,
+          country: "Indonesia",
+          subscriptionPlan,
+          subscriptionExpiresAt: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000
+          ), // 30 days trial
+          settings: {
+            timezone: "Asia/Jakarta",
+            currency: "IDR",
+            locale: "id-ID",
+            fiscalYearStart: "01-01",
+            defaultDepreciationMethod: "straight_line",
+            auditEnabled: true,
+            notificationsEnabled: true,
+          },
+          isActive: true,
+        },
+      });
+
+      // Create admin user
+      const user = await tx.user.create({
+        data: {
+          companyId: company.id,
+          employeeId: `${companyCode}001`, // Auto-generate employee ID
+          email,
+          passwordHash,
+          firstName,
+          lastName,
+          phone,
+          department,
+          position,
+          role: "admin", // First user is admin
+          permissions: [
+            "asset_read",
+            "asset_write",
+            "asset_delete",
+            "user_manage",
+            "company_settings",
+            "reports_view",
+          ],
+          isActive: true,
+          emailVerifiedAt: new Date(), // Auto-verify for now
+        },
+      });
+
+      return { company, user };
     });
 
-    // Generate token
-    const token = generateToken({ userId: user.id });
-
-    // Create session
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        token,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      },
+    // Generate JWT token
+    const token = generateToken({
+      userId: result.user.id,
+      email: result.user.email,
+      role: result.user.role,
+      companyId: result.company.id,
+      permissions: result.user.permissions,
     });
 
-    // Return user data (excluding password)
+    // Return user data and token
     const userData = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      avatar: user.avatar,
-      role: user.role,
+      id: result.user.id,
+      email: result.user.email,
+      firstName: result.user.firstName,
+      lastName: result.user.lastName,
+      role: result.user.role,
+      permissions: result.user.permissions,
+      department: result.user.department,
+      position: result.user.position,
+      company: {
+        id: result.company.id,
+        name: result.company.name,
+        code: result.company.code,
+        subscriptionPlan: result.company.subscriptionPlan,
+        subscriptionExpiresAt: result.company.subscriptionExpiresAt,
+        isActive: result.company.isActive,
+      },
     };
 
-    return successResponse(
+    return NextResponse.json(
       {
+        success: true,
+        message: "Registration successful",
         user: userData,
         token,
       },
-      "Registration successful",
-      201
+      { status: 201 }
     );
   } catch (error) {
     console.error("Registration error:", error);
-    return errorResponse("Internal server error");
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
   }
 }
