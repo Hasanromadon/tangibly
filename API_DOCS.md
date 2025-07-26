@@ -1,21 +1,31 @@
-# Asset Management API Documentation
+# Tangibly API Documentation
 
-This document provides comprehensive documentation for the SAAS Asset Management System API endpoints.
+> **Backend API Reference for Asset Management System**
 
-## Base URL
+## Overview
 
-```
-Development: http://localhost:3000/api
-Production: https://yourdomain.com/api
-```
+The Tangibly API provides RESTful endpoints for managing assets, users, companies, and authentication in a multi-tenant SAAS environment. All endpoints use JSON for request/response data and JWT for authentication.
+
+## Base URLs
+
+| Environment | URL                          |
+| ----------- | ---------------------------- |
+| Development | `http://localhost:3000/api`  |
+| Production  | `https://yourdomain.com/api` |
 
 ## Authentication
 
-All API endpoints require authentication via JWT token in the Authorization header:
+All protected endpoints require a JWT token in the Authorization header:
 
 ```http
 Authorization: Bearer <jwt_token>
 ```
+
+### Authentication Flow
+
+1. **Register/Login** → Receive JWT token
+2. **Include token** in all subsequent API requests
+3. **Token expiration** → Re-authenticate to get new token
 
 ### Login
 
