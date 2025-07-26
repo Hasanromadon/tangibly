@@ -45,7 +45,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
+    <div className="relative flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8 dark:bg-zinc-900">
       {/* Language switcher in top-right corner */}
       <div className="absolute top-4 right-4 z-10">
         <CompactLanguageSwitcher />
