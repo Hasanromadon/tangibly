@@ -143,7 +143,7 @@ export function validateEmail(email: string): boolean {
 }
 
 export function validatePhone(phone: string): boolean {
-  // Indonesian phone number format: +62-XXX-XXXX-XXXX or 08XX-XXXX-XXXX
-  const phoneRegex = /^(\+62-?|0)8\d{2}-?\d{4}-?\d{4}$/;
+  // Indonesian phone number format: +62-8XX-XXXX-XXXX or 08XX-XXXX-XXXX (more flexible)
+  const phoneRegex = /^(\+62-?|0)8\d{2,3}-?\d{3,4}-?\d{3,4}$/;
   return phoneRegex.test(phone);
 }
