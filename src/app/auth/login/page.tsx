@@ -10,9 +10,13 @@ import { Form } from "@/components/ui/form";
 import { TextField, CheckboxField } from "@/components/forms/FormFields";
 import { loginSchema, type LoginFormData } from "@/schemas/auth-schemas";
 import { useLogin } from "@/hooks/useAuth";
+import { useAuthTranslations } from "@/hooks/useTranslations";
+import { CompactLanguageSwitcher } from "@/components/language-switcher";
 import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
+  const t = useAuthTranslations();
+
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -41,7 +45,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
+    <div className="relative flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
+      {/* Language switcher in top-right corner */}
+      <div className="absolute top-4 right-4 z-10">
+        <CompactLanguageSwitcher />
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="rounded-full bg-blue-600 p-3">
@@ -61,10 +70,10 @@ export default function LoginPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          Sign in to Tangibly
+          {t("login.title")}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Asset Management System for Indonesian Companies
+          {t("login.subtitle")}
         </p>
       </div>
 
@@ -81,9 +90,9 @@ export default function LoginPage() {
               <TextField
                 control={form.control}
                 name="email"
-                label="Email address"
+                label={t("login.email")}
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t("login.emailPlaceholder")}
                 autoComplete="email"
                 required
               />
@@ -91,9 +100,9 @@ export default function LoginPage() {
               <TextField
                 control={form.control}
                 name="password"
-                label="Password"
+                label={t("login.password")}
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t("login.passwordPlaceholder")}
                 autoComplete="current-password"
                 required
               />
@@ -102,7 +111,7 @@ export default function LoginPage() {
                 <CheckboxField
                   control={form.control}
                   name="remember"
-                  label="Remember me"
+                  label={t("login.remember")}
                 />
 
                 <div className="text-sm">
@@ -110,7 +119,7 @@ export default function LoginPage() {
                     href="/auth/forgot-password"
                     className="font-medium text-blue-600 hover:text-blue-500"
                   >
-                    Forgot your password?
+                    {t("login.forgot")}
                   </Link>
                 </div>
               </div>
@@ -124,10 +133,10 @@ export default function LoginPage() {
                   {loginMutation.isPending ? (
                     <>
                       <Loader2 className="mr-3 -ml-1 h-5 w-5 animate-spin" />
-                      Signing in...
+                      {t("login.loading")}
                     </>
                   ) : (
-                    "Sign in"
+                    t("login.submit")
                   )}
                 </Button>
               </div>
@@ -139,7 +148,7 @@ export default function LoginPage() {
                   </div>
                   <div className="relative flex justify-center text-sm">
                     <span className="bg-white px-2 text-gray-500">
-                      New to Tangibly?
+                      {t("login.noAccount")}
                     </span>
                   </div>
                 </div>
@@ -149,7 +158,7 @@ export default function LoginPage() {
                     href="/auth/register"
                     className="flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                   >
-                    Create your company account
+                    {t("login.register")}
                   </Link>
                 </div>
               </div>
@@ -159,7 +168,7 @@ export default function LoginPage() {
           <div className="mt-8 border-t border-gray-200 pt-6">
             <div className="text-center">
               <h3 className="mb-3 text-sm font-medium text-gray-900">
-                Demo Accounts
+                {t("login.demoAccounts")}
               </h3>
               <div className="space-y-2 text-xs text-gray-600">
                 <div className="flex items-center justify-between">

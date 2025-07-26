@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 import path from "path";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   // Performance optimizations
@@ -144,4 +147,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Export the configuration with next-intl wrapper
+export default withNextIntl(nextConfig);

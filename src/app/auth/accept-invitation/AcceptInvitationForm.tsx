@@ -6,8 +6,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { invitationApiService } from "@/services/invitation-api";
+import {
+  useAuthTranslations,
+  useValidationTranslations,
+} from "@/hooks/useTranslations";
 
 export function AcceptInvitationForm() {
+  const t = useAuthTranslations();
+  const tValidation = useValidationTranslations();
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -67,23 +74,25 @@ export function AcceptInvitationForm() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
+      newErrors.firstName = tValidation("required", { field: t("firstName") });
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
+      newErrors.lastName = tValidation("required", { field: t("lastName") });
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = tValidation("required", { field: t("password") });
     } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+      newErrors.password = tValidation("passwordMinLength");
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
+      newErrors.confirmPassword = tValidation("required", {
+        field: t("confirmPassword"),
+      });
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = tValidation("passwordsDoNotMatch");
     }
 
     setErrors(newErrors);
@@ -110,11 +119,11 @@ export function AcceptInvitationForm() {
         // Redirect to login page with success message
         router.push("/auth/login?message=invitation-accepted");
       } else {
-        setErrors({ general: response.error || "Failed to accept invitation" });
+        setErrors({ general: response.error || t("acceptInvitationFailed") });
       }
     } catch (error) {
       console.error("Error accepting invitation:", error);
-      setErrors({ general: "An error occurred. Please try again." });
+      setErrors({ general: t("generalError") });
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +134,7 @@ export function AcceptInvitationForm() {
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="mx-auto h-32 w-32 animate-spin rounded-full border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Verifying invitation...</p>
+          <p className="mt-4 text-gray-600">{t("verifyingInvitation")}</p>
         </div>
       </div>
     );
@@ -152,17 +161,17 @@ export function AcceptInvitationForm() {
               </svg>
             </div>
             <h3 className="mt-2 text-sm font-medium text-gray-900">
-              Invalid Invitation
+              {t("invalidInvitation")}
             </h3>
             <p className="mt-1 text-sm text-gray-500">
-              This invitation link is invalid or has expired.
+              {t("invalidInvitationMessage")}
             </p>
             <div className="mt-6">
               <Link
                 href="/auth/login"
                 className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
               >
-                Go to Login
+                {t("goToLogin")}
               </Link>
             </div>
           </div>
@@ -192,17 +201,17 @@ export function AcceptInvitationForm() {
               </svg>
             </div>
             <h2 className="mt-2 text-2xl font-bold text-gray-900">
-              Accept Invitation
+              {t("acceptInvitation")}
             </h2>
             {invitation && (
               <div className="mt-4 text-sm text-gray-600">
                 <p>
-                  <strong>{invitation.invitedBy}</strong> has invited you to
-                  join <strong>{invitation.companyName}</strong> as a{" "}
+                  <strong>{invitation.invitedBy}</strong> {t("hasInvitedYou")}{" "}
+                  <strong>{invitation.companyName}</strong> {t("asA")}{" "}
                   <strong>{invitation.role}</strong>.
                 </p>
                 <p className="mt-1">
-                  Email: <strong>{invitation.email}</strong>
+                  {t("email")}: <strong>{invitation.email}</strong>
                 </p>
               </div>
             )}
@@ -221,7 +230,7 @@ export function AcceptInvitationForm() {
                   htmlFor="firstName"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  First Name
+                  {t("firstName")}
                 </label>
                 <div className="mt-1">
                   <input
@@ -235,7 +244,7 @@ export function AcceptInvitationForm() {
                     className={`block w-full appearance-none rounded-md border px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm ${
                       errors.firstName ? "border-red-300" : "border-gray-300"
                     }`}
-                    placeholder="Enter your first name"
+                    placeholder={t("enterFirstName")}
                   />
                   {errors.firstName && (
                     <p className="mt-2 text-sm text-red-600">
@@ -250,7 +259,7 @@ export function AcceptInvitationForm() {
                   htmlFor="lastName"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Last Name
+                  {t("lastName")}
                 </label>
                 <div className="mt-1">
                   <input
@@ -264,7 +273,7 @@ export function AcceptInvitationForm() {
                     className={`block w-full appearance-none rounded-md border px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm ${
                       errors.lastName ? "border-red-300" : "border-gray-300"
                     }`}
-                    placeholder="Enter your last name"
+                    placeholder={t("enterLastName")}
                   />
                   {errors.lastName && (
                     <p className="mt-2 text-sm text-red-600">
@@ -280,7 +289,7 @@ export function AcceptInvitationForm() {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700"
               >
-                Create Password
+                {t("createPassword")}
               </label>
               <div className="mt-1">
                 <input
@@ -294,7 +303,7 @@ export function AcceptInvitationForm() {
                   className={`block w-full appearance-none rounded-md border px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm ${
                     errors.password ? "border-red-300" : "border-gray-300"
                   }`}
-                  placeholder="Enter your password"
+                  placeholder={t("enterPassword")}
                 />
                 {errors.password && (
                   <p className="mt-2 text-sm text-red-600">{errors.password}</p>
@@ -307,7 +316,7 @@ export function AcceptInvitationForm() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700"
               >
-                Confirm Password
+                {t("confirmPassword")}
               </label>
               <div className="mt-1">
                 <input
@@ -323,7 +332,7 @@ export function AcceptInvitationForm() {
                       ? "border-red-300"
                       : "border-gray-300"
                   }`}
-                  placeholder="Confirm your password"
+                  placeholder={t("confirmPasswordPlaceholder")}
                 />
                 {errors.confirmPassword && (
                   <p className="mt-2 text-sm text-red-600">
@@ -361,10 +370,10 @@ export function AcceptInvitationForm() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Creating Account...
+                    {t("creatingAccount")}
                   </>
                 ) : (
-                  "Accept Invitation & Create Account"
+                  t("acceptInvitationAndCreateAccount")
                 )}
               </Button>
             </div>
@@ -374,7 +383,7 @@ export function AcceptInvitationForm() {
                 href="/auth/login"
                 className="text-sm text-blue-600 hover:text-blue-500"
               >
-                Already have an account? Sign in
+                {t("alreadyHaveAccount")}
               </Link>
             </div>
           </form>

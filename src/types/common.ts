@@ -1,5 +1,11 @@
 // Common types used across the application
 
+// Base component props that all components can extend
+export interface BaseComponentProps {
+  className?: string;
+  id?: string;
+}
+
 // Base entity interface that all entities should extend
 export interface BaseEntity {
   id: string;
