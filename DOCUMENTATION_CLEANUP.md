@@ -25,14 +25,16 @@
 ### **Root Level Documentation**
 
 ```
-├── README.md                    # 🌟 Main project overview (FE + BE)
-├── API_DOCS.md                  # 🔌 Complete Backend API reference
-├── ARCHITECTURE.md              # 🏗️ Full-stack architecture patterns
-├── TESTING_SETUP.md             # 🧪 Testing framework guide (FE + BE)
-├── IMPLEMENTATION_STATUS.md     # 📋 Project progress status
-├── DEPLOYMENT.md                # 🚀 Deployment instructions
-├── ASSET_MANAGEMENT_SPEC.md     # 📋 Product specification
-└── FRONTEND_MONITORING.md       # 📊 Frontend error monitoring
+├── README.md                         # 🌟 Main project overview (FE + BE)
+├── API_DOCS.md                       # 🔌 Complete Backend API reference
+├── ARCHITECTURE.md                   # 🏗️ Full-stack architecture patterns
+├── TESTING_SETUP.md                  # 🧪 Testing framework guide (FE + BE)
+├── IMPLEMENTATION_STATUS.md          # 📋 Project progress status
+├── DEPLOYMENT.md                     # 🚀 Deployment instructions
+├── ASSET_MANAGEMENT_SPEC.md          # 📋 Product specification
+├── FRONTEND_MONITORING.md            # 📊 Frontend error monitoring
+├── AI_PROMPTING_GUIDE.md            # 🤖 AI agent prompting instructions
+└── AI_PROMPTING_QUICK_REFERENCE.md  # ⚡ Quick AI prompting reference
 ```
 
 ### **Docs Folder (Specialized)**
@@ -68,16 +70,18 @@ docs/
 
 ## 📖 **Documentation Usage Guide**
 
-| Need                      | Read This                    | Audience              |
-| ------------------------- | ---------------------------- | --------------------- |
-| **Project Overview**      | README.md                    | All developers        |
-| **Backend API Reference** | API_DOCS.md                  | Backend/Frontend devs |
-| **Architecture Patterns** | ARCHITECTURE.md              | All developers        |
-| **Database Setup**        | docs/POSTGRESQL_SETUP.md     | Backend devs          |
-| **Testing Guide**         | TESTING_SETUP.md             | All developers        |
-| **Frontend Monitoring**   | FRONTEND_MONITORING.md       | Frontend devs         |
-| **Security Guidelines**   | docs/SECURITY_PERFORMANCE.md | All developers        |
-| **Deployment**            | DEPLOYMENT.md                | DevOps/Backend devs   |
+| Need                        | Read This                       | Audience              |
+| --------------------------- | ------------------------------- | --------------------- |
+| **Project Overview**        | README.md                       | All developers        |
+| **AI Development Workflow** | AI_PROMPTING_GUIDE.md           | All developers        |
+| **Quick AI Reference**      | AI_PROMPTING_QUICK_REFERENCE.md | All developers        |
+| **Backend API Reference**   | API_DOCS.md                     | Backend/Frontend devs |
+| **Architecture Patterns**   | ARCHITECTURE.md                 | All developers        |
+| **Database Setup**          | docs/POSTGRESQL_SETUP.md        | Backend devs          |
+| **Testing Guide**           | TESTING_SETUP.md                | All developers        |
+| **Frontend Monitoring**     | FRONTEND_MONITORING.md          | Frontend devs         |
+| **Security Guidelines**     | docs/SECURITY_PERFORMANCE.md    | All developers        |
+| **Deployment**              | DEPLOYMENT.md                   | DevOps/Backend devs   |
 
 ## ✨ **Benefits of Cleanup**
 

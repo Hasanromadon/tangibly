@@ -414,23 +414,54 @@ npx playwright install     # Install E2E browsers (first time)
 
 > 📖 For detailed architecture patterns, see [ARCHITECTURE.md](ARCHITECTURE.md)
 
+## 🤖 AI-Assisted Development
+
+### Efficient Development with AI Agents
+
+This project includes comprehensive AI prompting instructions to ensure consistent, high-quality development:
+
+- **Standardized Prompts** - Pre-defined templates for common development tasks
+- **Context Guidelines** - Proper project context for AI agents
+- **Quality Standards** - Maintain architecture and coding standards
+- **Workflow Integration** - Seamless AI assistance in daily development
+
+### Quick AI Commands
+
+```bash
+# Feature Implementation
+"Implement [feature] following Tangibly architecture patterns with full FE/BE integration"
+
+# Bug Fixing
+"Fix [issue] while maintaining TypeScript safety and test coverage"
+
+# Code Review
+"Review this code against Tangibly standards and SOLID principles"
+
+# Testing Enhancement
+"Add comprehensive tests following our testing pyramid strategy"
+```
+
+> 📖 For complete AI prompting guide, see [AI_PROMPTING_GUIDE.md](AI_PROMPTING_GUIDE.md)
+
 ## 📚 Documentation
 
-| Document                                                     | Purpose                      | Audience              | Type     |
-| ------------------------------------------------------------ | ---------------------------- | --------------------- | -------- |
-| [README.md](README.md)                                       | Project overview and setup   | All developers        | General  |
-| **Backend (BE) Docs**                                        |                              |                       |          |
-| [API_DOCS.md](API_DOCS.md)                                   | Complete API reference       | Backend/Frontend devs | BE       |
-| [docs/POSTGRESQL_SETUP.md](docs/POSTGRESQL_SETUP.md)         | Database setup guide         | Backend devs          | BE       |
-| **Frontend (FE) Docs**                                       |                              |                       |          |
-| [FRONTEND_MONITORING.md](FRONTEND_MONITORING.md)             | Error monitoring & logging   | Frontend devs         | FE       |
-| **Full-Stack Docs**                                          |                              |                       |          |
-| [ARCHITECTURE.md](ARCHITECTURE.md)                           | Code patterns and principles | All developers        | FE + BE  |
-| [TESTING_SETUP.md](TESTING_SETUP.md)                         | Testing framework guide      | All developers        | FE + BE  |
-| [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)         | Project progress status      | All developers        | FE + BE  |
-| **Operations Docs**                                          |                              |                       |          |
-| [DEPLOYMENT.md](DEPLOYMENT.md)                               | Deployment instructions      | DevOps/Backend devs   | DevOps   |
-| [docs/SECURITY_PERFORMANCE.md](docs/SECURITY_PERFORMANCE.md) | Security & performance guide | All developers        | Security |
+| Document                                                     | Purpose                         | Audience              | Type     |
+| ------------------------------------------------------------ | ------------------------------- | --------------------- | -------- |
+| [README.md](README.md)                                       | Project overview and setup      | All developers        | General  |
+| **Development Workflow**                                     |                                 |                       |          |
+| [AI_PROMPTING_GUIDE.md](AI_PROMPTING_GUIDE.md)               | AI agent prompting instructions | All developers        | Workflow |
+| **Backend (BE) Docs**                                        |                                 |                       |          |
+| [API_DOCS.md](API_DOCS.md)                                   | Complete API reference          | Backend/Frontend devs | BE       |
+| [docs/POSTGRESQL_SETUP.md](docs/POSTGRESQL_SETUP.md)         | Database setup guide            | Backend devs          | BE       |
+| **Frontend (FE) Docs**                                       |                                 |                       |          |
+| [FRONTEND_MONITORING.md](FRONTEND_MONITORING.md)             | Error monitoring & logging      | Frontend devs         | FE       |
+| **Full-Stack Docs**                                          |                                 |                       |          |
+| [ARCHITECTURE.md](ARCHITECTURE.md)                           | Code patterns and principles    | All developers        | FE + BE  |
+| [TESTING_SETUP.md](TESTING_SETUP.md)                         | Testing framework guide         | All developers        | FE + BE  |
+| [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)         | Project progress status         | All developers        | FE + BE  |
+| **Operations Docs**                                          |                                 |                       |          |
+| [DEPLOYMENT.md](DEPLOYMENT.md)                               | Deployment instructions         | DevOps/Backend devs   | DevOps   |
+| [docs/SECURITY_PERFORMANCE.md](docs/SECURITY_PERFORMANCE.md) | Security & performance guide    | All developers        | Security |
 
 ## 🚀 Deployment
 
