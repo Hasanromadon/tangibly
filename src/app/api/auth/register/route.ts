@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/database/prisma";
 import {
   hashPassword,
   generateToken,
   validateNPWP,
   validatePhone,
 } from "@/lib/auth";
-
-const prisma = new PrismaClient();
 
 const registerSchema = z.object({
   // Company information
@@ -126,7 +124,7 @@ export async function POST(request: NextRequest) {
     const passwordHash = await hashPassword(password);
 
     // Create company and admin user in a transaction
-    const result = await prisma.$transaction(async tx => {
+    const result = await prisma.$transaction(async (tx: typeof prisma) => {
       // Create company
       const company = await tx.company.create({
         data: {

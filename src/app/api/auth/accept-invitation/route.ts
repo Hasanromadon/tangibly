@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/database/prisma";
 import { hashPassword, verifyToken, generateToken } from "@/lib/auth";
-
-const prisma = new PrismaClient();
 
 const acceptInvitationSchema = z.object({
   token: z.string(),

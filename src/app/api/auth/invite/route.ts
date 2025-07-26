@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/database/prisma";
 import { verifyToken, generateToken, validatePhone } from "@/lib/auth";
-
-const prisma = new PrismaClient();
 
 const inviteUserSchema = z.object({
   email: z.string().email("Invalid email address").toLowerCase(),
