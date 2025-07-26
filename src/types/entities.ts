@@ -6,6 +6,40 @@ import {
   SubscriptionStatus,
 } from "./common";
 
+// ===== Base API Response Types =====
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export interface PaginatedResponse<T = unknown> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface ErrorResponse {
+  success: false;
+  error: string;
+  details?: ValidationError[];
+}
+
+// ===== Entity Types =====
+
 // User related interfaces
 export interface User extends BaseEntity {
   firstName: string;
@@ -77,16 +111,32 @@ export interface RegisterData {
 }
 
 // Invitation related interfaces
+// Authentication related interfaces
 export interface UserInvitation extends BaseEntity {
-  companyId: string;
   email: string;
+  firstName: string;
+  lastName: string;
   role: UserRole;
-  permissions: Permission[];
-  invitedById: string;
+  companyId: string;
+  invitedBy: string;
   token: string;
-  isAccepted: boolean;
-  acceptedAt: string | null;
   expiresAt: string;
+  isAccepted: boolean;
+  acceptedAt?: string;
+}
+
+// Company User - for company user list display
+export interface CompanyUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  isActive: boolean;
+  department?: string;
+  position?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface InviteUserData {
@@ -107,34 +157,237 @@ export interface VerifyInvitationResponse {
     email: string;
     role: UserRole;
     companyName: string;
-    invitedBy: {
-      firstName: string;
-      lastName: string;
-    };
-    expiresAt: string;
+    invitedBy: string; // This is a formatted string, not an object
+    expiresAt?: string;
   };
 }
 
 // Asset management related interfaces (extensible for future features)
 export interface Asset extends BaseEntity {
   companyId: string;
+  assetNumber: string;
   name: string;
   description?: string;
-  serialNumber?: string;
+
+  // Basic Information
+  brand?: string;
   model?: string;
-  manufacturer?: string;
-  categoryId: string;
+  serialNumber?: string;
+  barcode?: string;
+
+  // Categories and Locations
+  categoryId?: string;
   locationId?: string;
-  assignedToId?: string;
+  vendorId?: string;
+  assignedTo?: string;
+
+  // Financial Information
+  purchaseCost?: number;
   purchaseDate?: string;
-  purchasePrice?: number;
-  currentValue?: number;
-  status: "active" | "maintenance" | "retired" | "disposed";
-  condition: "excellent" | "good" | "fair" | "poor";
+  purchaseOrderNumber?: string;
+  invoiceNumber?: string;
   warrantyExpiresAt?: string;
-  notes?: string;
-  imageUrls: string[];
+
+  // Depreciation
+  depreciationMethod:
+    | "straight_line"
+    | "declining_balance"
+    | "units_of_production";
+  usefulLifeYears?: number;
+  salvageValue: number;
+  bookValue?: number;
+
+  // Status and Condition
+  status:
+    | "active"
+    | "inactive"
+    | "maintenance"
+    | "disposed"
+    | "stolen"
+    | "lost";
+  condition: "excellent" | "good" | "fair" | "poor" | "damaged";
+  criticality: "critical" | "high" | "medium" | "low";
+
+  // Environmental (ISO 14001)
+  energyRating?: string;
+  carbonFootprint?: number;
+  recyclable: boolean;
+  hazardousMaterials: string[];
+
+  // IT Asset (ISO 27001)
+  ipAddress?: string;
+  macAddress?: string;
+  operatingSystem?: string;
+  softwareLicenses: string[];
+  securityClassification?:
+    | "public"
+    | "internal"
+    | "confidential"
+    | "restricted";
+
+  // QR Code and Metadata
+  qrCode?: string;
   tags: string[];
+  customFields: Record<string, unknown>;
+  notes?: string;
+
+  // Relationships
+  category?: AssetCategory;
+  location?: Location;
+  assignee?: User;
+  creator?: User;
+  createdBy: string;
+}
+
+export interface AssetCreateData {
+  name: string;
+  description?: string;
+
+  // Basic Information
+  brand?: string;
+  model?: string;
+  serialNumber?: string;
+  barcode?: string;
+
+  // Categories and Locations
+  categoryId?: string;
+  locationId?: string;
+  vendorId?: string;
+  assignedTo?: string;
+
+  // Financial Information
+  purchaseCost?: number;
+  purchaseDate?: string;
+  purchaseOrderNumber?: string;
+  invoiceNumber?: string;
+  warrantyExpiresAt?: string;
+
+  // Depreciation
+  depreciationMethod?:
+    | "straight_line"
+    | "declining_balance"
+    | "units_of_production";
+  usefulLifeYears?: number;
+  salvageValue?: number;
+
+  // Status and Condition
+  status?:
+    | "active"
+    | "inactive"
+    | "maintenance"
+    | "disposed"
+    | "stolen"
+    | "lost";
+  condition?: "excellent" | "good" | "fair" | "poor" | "damaged";
+  criticality?: "critical" | "high" | "medium" | "low";
+
+  // Environmental
+  energyRating?: string;
+  carbonFootprint?: number;
+  recyclable?: boolean;
+  hazardousMaterials?: string[];
+
+  // IT Asset
+  ipAddress?: string;
+  macAddress?: string;
+  operatingSystem?: string;
+  softwareLicenses?: string[];
+  securityClassification?:
+    | "public"
+    | "internal"
+    | "confidential"
+    | "restricted";
+
+  // Metadata
+  tags?: string[];
+  customFields?: Record<string, unknown>;
+  notes?: string;
+}
+
+export interface AssetUpdateData {
+  name?: string;
+  description?: string;
+
+  // Basic Information
+  brand?: string;
+  model?: string;
+  serialNumber?: string;
+  barcode?: string;
+
+  // Categories and Locations
+  categoryId?: string;
+  locationId?: string;
+  vendorId?: string;
+  assignedTo?: string;
+
+  // Financial Information
+  purchaseCost?: number;
+  purchaseDate?: string;
+  purchaseOrderNumber?: string;
+  invoiceNumber?: string;
+  warrantyExpiresAt?: string;
+
+  // Depreciation
+  depreciationMethod?:
+    | "straight_line"
+    | "declining_balance"
+    | "units_of_production";
+  usefulLifeYears?: number;
+  salvageValue?: number;
+
+  // Status and Condition
+  status?:
+    | "active"
+    | "inactive"
+    | "maintenance"
+    | "disposed"
+    | "stolen"
+    | "lost";
+  condition?: "excellent" | "good" | "fair" | "poor" | "damaged";
+  criticality?: "critical" | "high" | "medium" | "low";
+
+  // Environmental
+  energyRating?: string;
+  carbonFootprint?: number;
+  recyclable?: boolean;
+  hazardousMaterials?: string[];
+
+  // IT Asset
+  ipAddress?: string;
+  macAddress?: string;
+  operatingSystem?: string;
+  softwareLicenses?: string[];
+  securityClassification?:
+    | "public"
+    | "internal"
+    | "confidential"
+    | "restricted";
+
+  // Metadata
+  tags?: string[];
+  customFields?: Record<string, unknown>;
+  notes?: string;
+}
+
+export interface AssetFilters {
+  search?: string;
+  categoryId?: string;
+  locationId?: string;
+  vendorId?: string;
+  assignedTo?: string;
+  status?:
+    | "active"
+    | "inactive"
+    | "maintenance"
+    | "disposed"
+    | "stolen"
+    | "lost";
+  condition?: "excellent" | "good" | "fair" | "poor" | "damaged";
+  criticality?: "critical" | "high" | "medium" | "low";
+  purchaseDateFrom?: string;
+  purchaseDateTo?: string;
+  warrantyExpiring?: boolean;
+  tags?: string[];
 }
 
 export interface AssetCategory extends BaseEntity {

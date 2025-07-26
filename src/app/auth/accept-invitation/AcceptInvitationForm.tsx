@@ -5,19 +5,23 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { invitationApiService } from "@/services/invitation-api";
 
 export function AcceptInvitationForm() {
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
     password: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [invitation, setInvitation] = useState<{
-    invitedBy: string;
-    companyName: string;
-    role: string;
     email: string;
+    role: string;
+    companyName: string;
+    invitedBy: string;
+    expiresAt?: string;
   } | null>(null);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const router = useRouter();
@@ -34,13 +38,9 @@ export function AcceptInvitationForm() {
 
   const verifyInvitation = async (token: string) => {
     try {
-      const response = await fetch(
-        `/api/auth/verify-invitation?token=${token}`
-      );
-      const data = await response.json();
-
-      if (response.ok) {
-        setInvitation(data.invitation);
+      const response = await invitationApiService.verifyInvitation(token);
+      if (response.success && response.data) {
+        setInvitation(response.data.invitation);
         setTokenValid(true);
       } else {
         setTokenValid(false);
@@ -65,6 +65,14 @@ export function AcceptInvitationForm() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    }
 
     if (!formData.password) {
       newErrors.password = "Password is required";
@@ -91,24 +99,18 @@ export function AcceptInvitationForm() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/accept-invitation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token,
-          password: formData.password,
-        }),
+      const response = await invitationApiService.acceptInvitation({
+        token,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        password: formData.password,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         // Redirect to login page with success message
         router.push("/auth/login?message=invitation-accepted");
       } else {
-        setErrors({ general: data.error || "Failed to accept invitation" });
+        setErrors({ general: response.error || "Failed to accept invitation" });
       }
     } catch (error) {
       console.error("Error accepting invitation:", error);
@@ -212,6 +214,66 @@ export function AcceptInvitationForm() {
                 <div className="text-sm text-red-700">{errors.general}</div>
               </div>
             )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  First Name
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    autoComplete="given-name"
+                    required
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className={`block w-full appearance-none rounded-md border px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm ${
+                      errors.firstName ? "border-red-300" : "border-gray-300"
+                    }`}
+                    placeholder="Enter your first name"
+                  />
+                  {errors.firstName && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.firstName}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Last Name
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    autoComplete="family-name"
+                    required
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className={`block w-full appearance-none rounded-md border px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm ${
+                      errors.lastName ? "border-red-300" : "border-gray-300"
+                    }`}
+                    placeholder="Enter your last name"
+                  />
+                  {errors.lastName && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.lastName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
 
             <div>
               <label

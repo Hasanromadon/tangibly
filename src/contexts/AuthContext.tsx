@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { authApiService } from "@/services/auth-api";
 import { User, Company, Permission, UserRole } from "@/types";
 
 interface AuthContextType {
@@ -101,12 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Call logout API to invalidate server-side session
       if (token) {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await authApiService.logout();
       }
     } catch (error) {
       console.error("Logout API error:", error);
