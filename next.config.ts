@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Image optimization
+  images: {
+    formats: ["image/webp", "image/avif"],
+  },
+
+  // Strict mode for better development experience
+  reactStrictMode: true,
 };
 
 export default nextConfig;

@@ -1,0 +1,11 @@
+node_modules
+.next
+.vercel
+.env*.local
+dist
+build
+*.log
+coverage
+.nyc_output
+.vscode/settings.json
+.idea

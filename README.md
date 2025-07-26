@@ -1,36 +1,171 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tangibly - Modern Next.js Application
 
-## Getting Started
+A modern, production-ready Next.js application built with the latest frontend technologies and best practices.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 15** with App Router and React 19
+- **TypeScript** for type safety
+- **Tailwind CSS v4** for styling
+- **shadcn/ui** for beautiful, accessible components
+- **Zustand** for lightweight state management
+- **React Query** for server state management
+- **React Hook Form** with Zod validation
+- **Framer Motion** for animations
+- **Dark/Light mode** with next-themes
+- **ESLint & Prettier** for code quality
+- **Husky & lint-staged** for pre-commit hooks
+- **Commitizen** for conventional commits
+
+## 📁 Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page
+├── components/            # React components
+│   ├── common/           # Shared components
+│   ├── forms/            # Form components
+│   └── ui/               # shadcn/ui components
+├── constants/            # App constants
+├── hooks/               # Custom React hooks
+├── lib/                # Utility functions
+├── providers/          # Context providers
+├── schemas/           # Zod validation schemas
+├── services/         # API services
+├── store/           # Zustand stores
+└── types/          # TypeScript types
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Development Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone the repository**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   git clone <repository-url>
+   cd tangibly
+   ```
 
-## Learn More
+2. **Install dependencies**
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Setup environment variables**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your values
+   ```
 
-## Deploy on Vercel
+4. **Run the development server**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+5. **Open [http://localhost:3000](http://localhost:3000)**
+
+## 📜 Available Scripts
+
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint errors
+- `npm run prettier` - Format code with Prettier
+- `npm run prettier:check` - Check code formatting
+- `npm run type-check` - Run TypeScript compiler
+- `npm run analyze` - Analyze bundle size
+- `npm run commit` - Commit with Commitizen
+
+## 🎨 Adding Components
+
+Add new shadcn/ui components:
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+Available components: button, card, input, dialog, dropdown-menu, form, table, badge, and more.
+
+## 🗂️ Code Organization
+
+### Components
+
+- `components/ui/` - shadcn/ui components
+- `components/common/` - Shared components (ThemeToggle, LoadingSpinner, etc.)
+- `components/forms/` - Form components with validation
+
+### State Management
+
+- `store/` - Zustand stores for global state
+- `hooks/` - Custom hooks for local state and logic
+
+### Data & Types
+
+- `schemas/` - Zod validation schemas
+- `types/` - TypeScript type definitions
+- `constants/` - App constants and configurations
+
+### Services
+
+- `services/api.ts` - API service layer
+- `lib/utils.ts` - Utility functions
+
+## 🎯 Best Practices
+
+- Use TypeScript for all files
+- Follow the established folder structure
+- Use Zod for runtime validation
+- Implement proper error handling
+- Write meaningful commit messages
+- Use semantic versioning
+
+## 🔧 Configuration Files
+
+- `.prettierrc` - Prettier configuration
+- `eslint.config.mjs` - ESLint configuration
+- `tailwind.config.js` - Tailwind CSS configuration
+- `components.json` - shadcn/ui configuration
+- `tsconfig.json` - TypeScript configuration
+- `next.config.ts` - Next.js configuration
+
+## 📦 Key Dependencies
+
+### Production
+
+- **next** - React framework
+- **react** & **react-dom** - React library
+- **typescript** - Type safety
+- **tailwindcss** - CSS framework
+- **zustand** - State management
+- **@tanstack/react-query** - Server state
+- **react-hook-form** - Form handling
+- **zod** - Schema validation
+- **framer-motion** - Animations
+- **next-themes** - Theme management
+
+### Development
+
+- **eslint** & **prettier** - Code quality
+- **husky** - Git hooks
+- **lint-staged** - Pre-commit linting
+- **commitizen** - Conventional commits
+
+## 🚀 Deployment
+
+The app is ready to deploy on Vercel, Netlify, or any Node.js hosting platform.
+
+For Vercel:
+
+```bash
+npm run build
+```
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
