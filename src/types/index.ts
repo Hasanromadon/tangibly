@@ -1,38 +1,18 @@
-// Types for common UI components
-export interface BaseComponentProps {
-  className?: string;
-  children?: React.ReactNode;
-}
+// Re-export all common types and entities for easy importing
+export * from "./common";
+export * from "./entities";
 
-// Form related types
-export interface FormFieldProps extends BaseComponentProps {
-  label?: string;
-  error?: string;
-  required?: boolean;
-}
-
-// API response types
-export interface ApiResponse<T = unknown> {
-  data: T;
-  message?: string;
-  success: boolean;
-}
-
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-// User types
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatar?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Legacy exports for backward compatibility (will be deprecated)
+export type {
+  User,
+  Company,
+  AuthResponse,
+  LoginCredentials,
+  RegisterData,
+} from "./entities";
+export type {
+  ApiResponse,
+  ApiError,
+  PaginatedResponse,
+  QueryOptions,
+} from "./common";

@@ -2,34 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  companyId: string;
-  employeeId: string | null;
-  permissions: string[];
-  isActive: boolean;
-  lastLogin: string | null;
-  createdAt: string;
-}
-
-interface Company {
-  id: string;
-  name: string;
-  code: string;
-  npwp: string;
-  phone: string;
-  email: string;
-  address: string;
-  subscriptionStatus: string;
-  subscriptionPlan: string;
-  subscriptionExpiresAt: string | null;
-  createdAt: string;
-}
+import { User, Company, Permission, UserRole } from "@/types";
 
 interface AuthContextType {
   user: User | null;
@@ -38,8 +11,8 @@ interface AuthContextType {
   login: (token: string, user: User, company: Company) => void;
   logout: () => void;
   isLoading: boolean;
-  hasPermission: (permission: string) => boolean;
-  isRole: (role: string | string[]) => boolean;
+  hasPermission: (permission: Permission) => boolean;
+  isRole: (role: UserRole | UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -82,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(storedToken);
         setUser(userData);
         setCompany(companyData);
-      } catch (error) {
+      } catch {
         // Invalid stored data, clear it
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -149,14 +122,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const hasPermission = (permission: string): boolean => {
+  const hasPermission = (permission: Permission): boolean => {
     if (!user) return false;
     return (
       user.permissions.includes(permission) || user.permissions.includes("all")
     );
   };
 
-  const isRole = (role: string | string[]): boolean => {
+  const isRole = (role: UserRole | UserRole[]): boolean => {
     if (!user) return false;
     if (Array.isArray(role)) {
       return role.includes(user.role);
@@ -189,8 +162,8 @@ export function useAuth() {
 // Higher-order component for protecting routes
 export function withAuth<T extends object>(
   WrappedComponent: React.ComponentType<T>,
-  requiredPermissions?: string[],
-  requiredRoles?: string[]
+  requiredPermissions?: Permission[],
+  requiredRoles?: UserRole[]
 ) {
   return function AuthenticatedComponent(props: T) {
     const { user, hasPermission, isRole, isLoading } = useAuth();
@@ -233,7 +206,7 @@ export function withAuth<T extends object>(
               Access Denied
             </h1>
             <p className="mb-4 text-gray-600">
-              You don't have permission to access this page.
+              You don&apos;t have permission to access this page.
             </p>
             <button
               onClick={() => router.push("/asset-management")}
@@ -254,7 +227,7 @@ export function withAuth<T extends object>(
               Access Denied
             </h1>
             <p className="mb-4 text-gray-600">
-              Your role doesn't have access to this page.
+              Your role doesn&apos;t have access to this page.
             </p>
             <button
               onClick={() => router.push("/asset-management")}
@@ -279,8 +252,8 @@ export function RoleGuard({
   fallback,
 }: {
   children: React.ReactNode;
-  roles?: string[];
-  permissions?: string[];
+  roles?: UserRole[];
+  permissions?: Permission[];
   fallback?: React.ReactNode;
 }) {
   const { user, hasPermission, isRole } = useAuth();

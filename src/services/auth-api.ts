@@ -1,102 +1,41 @@
-import { BaseApiClient, ApiResponse } from "@/lib/api-client";
+import { BaseApiService } from "@/lib/base-api-service";
+import {
+  ApiResponse,
+  User,
+  Company,
+  AuthResponse,
+  LoginCredentials,
+  RegisterData,
+  InviteUserData,
+  AcceptInvitationData,
+  UserInvitation,
+  VerifyInvitationResponse,
+} from "@/types";
 
-// Authentication data types
-export interface LoginCredentials {
-  email: string;
-  password: string;
-  remember?: boolean;
-}
+// Re-export types for convenience
+export type {
+  AuthResponse,
+  LoginCredentials,
+  RegisterData,
+  InviteUserData,
+  AcceptInvitationData,
+  UserInvitation,
+  VerifyInvitationResponse,
+  User,
+  Company,
+};
 
-export interface RegisterData {
-  company: {
-    name: string;
-    npwp: string;
-    phone: string;
-    email: string;
-    address: string;
-  };
-  user: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-  };
-}
-
-export interface InviteUserData {
-  email: string;
-  role: string;
-}
-
-export interface AcceptInvitationData {
-  token: string;
-  password: string;
-}
-
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  companyId: string;
-  employeeId: string | null;
-  permissions: string[];
-  isActive: boolean;
-  lastLogin: string | null;
-  createdAt: string;
-}
-
-export interface Company {
-  id: string;
-  name: string;
-  code: string;
-  npwp: string;
-  phone: string;
-  email: string;
-  address: string;
-  subscriptionStatus: string;
-  subscriptionPlan: string;
-  subscriptionExpiresAt: string | null;
-  createdAt: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-  company: Company;
-}
-
-export interface InvitationData {
-  id: string;
-  email: string;
-  role: string;
-  isAccepted: boolean;
-  createdAt: string;
-  invitedBy: {
-    firstName: string;
-    lastName: string;
-  };
-}
-
-export interface VerifyInvitationResponse {
-  invitation: {
-    email: string;
-    role: string;
-    companyName: string;
-    invitedBy: string;
-  };
-}
-
-// Authentication API service following Single Responsibility Principle
-export class AuthApiService extends BaseApiClient {
+// Authentication API service
+export class AuthApiService extends BaseApiService {
   private readonly endpoints = {
     login: "/auth/login",
     register: "/auth/register",
     logout: "/auth/logout",
+    me: "/auth/me",
     invite: "/auth/invite",
     acceptInvitation: "/auth/accept-invitation",
     verifyInvitation: "/auth/verify-invitation",
+    refreshToken: "/auth/refresh",
   } as const;
 
   async login(
@@ -113,8 +52,14 @@ export class AuthApiService extends BaseApiClient {
     return this.post<void>(this.endpoints.logout);
   }
 
-  async inviteUser(data: InviteUserData): Promise<ApiResponse<InvitationData>> {
-    return this.post<InvitationData>(this.endpoints.invite, data);
+  async getCurrentUser(): Promise<
+    ApiResponse<{ user: User; company: Company }>
+  > {
+    return this.get<{ user: User; company: Company }>(this.endpoints.me);
+  }
+
+  async inviteUser(data: InviteUserData): Promise<ApiResponse<UserInvitation>> {
+    return this.post<UserInvitation>(this.endpoints.invite, data);
   }
 
   async acceptInvitation(
@@ -129,6 +74,10 @@ export class AuthApiService extends BaseApiClient {
     return this.get<VerifyInvitationResponse>(
       `${this.endpoints.verifyInvitation}?token=${token}`
     );
+  }
+
+  async refreshToken(): Promise<ApiResponse<{ token: string }>> {
+    return this.post<{ token: string }>(this.endpoints.refreshToken);
   }
 }
 
