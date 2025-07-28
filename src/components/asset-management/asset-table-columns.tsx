@@ -23,6 +23,11 @@ import {
 } from "lucide-react";
 import { useAssetTranslations } from "@/hooks/useTranslations";
 import { Asset } from "@/services/asset-api";
+import { formatCurrency, formatDate } from "@/lib/formatters";
+import {
+  getAssetStatusBadgeVariant,
+  getAssetConditionBadgeVariant,
+} from "@/lib/badge-variants";
 
 export interface AssetTableActions {
   onView: (asset: Asset) => void;
@@ -30,58 +35,19 @@ export interface AssetTableActions {
   onDelete: (assetId: string) => void;
 }
 
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case "active":
-      return "default";
-    case "inactive":
-      return "secondary";
-    case "maintenance":
-      return "destructive";
-    case "disposed":
-      return "outline";
-    default:
-      return "secondary";
-  }
-};
-
-const getConditionBadgeVariant = (condition: string) => {
-  switch (condition) {
-    case "excellent":
-      return "default";
-    case "good":
-      return "secondary";
-    case "fair":
-      return "destructive";
-    case "poor":
-      return "outline";
-    case "damaged":
-      return "destructive";
-    default:
-      return "secondary";
-  }
-};
-
 // Status and condition translation helper
-const translateStatus = (status: string, t: any) => {
+const translateStatus = (
+  status: string,
+  t: ReturnType<typeof useAssetTranslations>
+) => {
   return t(`status.${status}`) || status;
 };
 
-const translateCondition = (condition: string, t: any) => {
+const translateCondition = (
+  condition: string,
+  t: ReturnType<typeof useAssetTranslations>
+) => {
   return t(`conditions.${condition}`) || condition;
-};
-
-const formatCurrency = (amount: number | undefined) => {
-  if (!amount) return "-";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-  }).format(amount);
-};
-
-const formatDate = (date: Date | string | undefined) => {
-  if (!date) return "-";
-  return new Date(date).toLocaleDateString("id-ID");
 };
 
 export function createAssetColumns(
@@ -191,7 +157,7 @@ export function createAssetColumns(
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
         return (
-          <Badge variant={getStatusBadgeVariant(status)}>
+          <Badge variant={getAssetStatusBadgeVariant(status)}>
             {translateStatus(status, t)}
           </Badge>
         );
@@ -214,7 +180,7 @@ export function createAssetColumns(
       cell: ({ row }) => {
         const condition = row.getValue("condition") as string;
         return (
-          <Badge variant={getConditionBadgeVariant(condition)}>
+          <Badge variant={getAssetConditionBadgeVariant(condition)}>
             {translateCondition(condition, t)}
           </Badge>
         );

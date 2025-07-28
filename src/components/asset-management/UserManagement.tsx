@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { dateFormatters } from "@/lib/formatters";
+import { getRoleBadgeVariant } from "@/lib/badge-variants";
 
 interface User {
   id: string;
@@ -159,33 +162,6 @@ export default function UserManagement() {
         user.id === userId ? { ...user, isActive: true } : user
       )
     );
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case "super_admin":
-        return "bg-purple-100 text-purple-800";
-      case "admin":
-        return "bg-red-100 text-red-800";
-      case "manager":
-        return "bg-blue-100 text-blue-800";
-      case "user":
-        return "bg-green-100 text-green-800";
-      case "viewer":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
   };
 
   if (isLoading) {
@@ -346,17 +322,17 @@ export default function UserManagement() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getRoleBadgeColor(user.role)}`}
-                    >
+                    <Badge variant={getRoleBadgeVariant(user.role)}>
                       {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-4 py-3 text-gray-900">
                     {user.employeeId || "-"}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">
-                    {user.lastLogin ? formatDate(user.lastLogin) : "Never"}
+                    {user.lastLogin
+                      ? dateFormatters.withTime(user.lastLogin)
+                      : "Never"}
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -437,19 +413,17 @@ export default function UserManagement() {
                         {invitation.email}
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getRoleBadgeColor(invitation.role)}`}
-                        >
+                        <Badge variant={getRoleBadgeVariant(invitation.role)}>
                           {invitation.role.charAt(0).toUpperCase() +
                             invitation.role.slice(1)}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-4 py-3 text-gray-900">
                         {invitation.invitedBy.firstName}{" "}
                         {invitation.invitedBy.lastName}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
-                        {formatDate(invitation.createdAt)}
+                        {dateFormatters.withTime(invitation.createdAt)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">

@@ -24,72 +24,17 @@ import {
 } from "lucide-react";
 import { useAssetTranslations } from "@/hooks/useTranslations";
 import { Asset } from "@/types/entities";
+import { formatCurrency, formatDate, dateFormatters } from "@/lib/formatters";
+import {
+  getAssetStatusBadgeVariant,
+  getAssetConditionBadgeVariant,
+} from "@/lib/badge-variants";
 
 interface ViewAssetDialogProps {
   open: boolean;
   onClose: () => void;
-  asset: Asset | null;
+  asset?: Asset;
 }
-
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case "active":
-      return "default";
-    case "inactive":
-      return "secondary";
-    case "maintenance":
-      return "destructive";
-    case "disposed":
-      return "outline";
-    default:
-      return "secondary";
-  }
-};
-
-const getConditionBadgeVariant = (condition: string) => {
-  switch (condition) {
-    case "excellent":
-      return "default";
-    case "good":
-      return "secondary";
-    case "fair":
-      return "destructive";
-    case "poor":
-      return "outline";
-    case "damaged":
-      return "destructive";
-    default:
-      return "secondary";
-  }
-};
-
-const formatCurrency = (amount: number | undefined) => {
-  if (!amount) return "-";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-  }).format(amount);
-};
-
-const formatDate = (date: Date | string | undefined) => {
-  if (!date) return "-";
-  return new Date(date).toLocaleDateString("id-ID", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
-
-const formatDateTime = (date: Date | string | undefined) => {
-  if (!date) return "-";
-  return new Date(date).toLocaleString("id-ID", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
 
 export default function ViewAssetDialog({
   open,
@@ -114,11 +59,11 @@ export default function ViewAssetDialog({
           {/* Header with Status and Actions */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={getStatusBadgeVariant(asset.status || "")}>
+              <Badge variant={getAssetStatusBadgeVariant(asset.status || "")}>
                 {t(`status.${asset.status}`) || asset.status}
               </Badge>
               {asset.condition && (
-                <Badge variant={getConditionBadgeVariant(asset.condition)}>
+                <Badge variant={getAssetConditionBadgeVariant(asset.condition)}>
                   {t(`conditions.${asset.condition}`) || asset.condition}
                 </Badge>
               )}
@@ -535,7 +480,7 @@ export default function ViewAssetDialog({
                       <div>
                         <p className="font-medium">{t("assetCreated")}</p>
                         <p className="text-muted-foreground text-sm">
-                          {formatDateTime(asset.createdAt)}
+                          {dateFormatters.withTime(asset.createdAt)}
                         </p>
                       </div>
                       <Badge variant="outline">{t("created")}</Badge>
@@ -545,7 +490,7 @@ export default function ViewAssetDialog({
                         <div>
                           <p className="font-medium">{t("assetUpdated")}</p>
                           <p className="text-muted-foreground text-sm">
-                            {formatDateTime(asset.updatedAt)}
+                            {dateFormatters.withTime(asset.updatedAt)}
                           </p>
                         </div>
                         <Badge variant="outline">{t("updated")}</Badge>
