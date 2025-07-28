@@ -33,6 +33,10 @@ import { useCreateAssetWithValidation } from "@/hooks/useAssets";
 import { assetFormSchema } from "@/schemas/asset-schemas";
 import { transformFormToApiData } from "@/types/asset-types";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
+import {
+  useAssetTranslations,
+  useCommonTranslations,
+} from "@/hooks/useTranslations";
 import { toast } from "sonner";
 
 interface AddAssetFormProps {
@@ -47,6 +51,10 @@ export default function AddAssetForm({
   onSuccess,
 }: AddAssetFormProps) {
   const createAssetMutation = useCreateAssetWithValidation();
+
+  // Initialize translations
+  const t = useAssetTranslations();
+  const commonT = useCommonTranslations();
 
   const form = useForm({
     resolver: zodResolver(assetFormSchema),
@@ -88,15 +96,16 @@ export default function AddAssetForm({
       console.log("Submitting asset data:", submitData);
       await createAssetMutation.createAssetAsync(submitData);
 
+      // Show success message
+      toast.success(t("createSuccess"));
+
       // Reset form and close dialog
       form.reset();
       onSuccess();
       onClose();
     } catch (error) {
       console.error("Error creating asset:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create asset"
-      );
+      toast.error(error instanceof Error ? error.message : t("createError"));
     }
   };
 
@@ -109,26 +118,29 @@ export default function AddAssetForm({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Asset</DialogTitle>
-          <DialogDescription>
-            Create a new asset record for your organization
-          </DialogDescription>
+          <DialogTitle>{t("addNewAsset")}</DialogTitle>
+          <DialogDescription>{t("createAssetRecord")}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Basic Information */}
             <Card className="p-4">
-              <h3 className="mb-4 text-lg font-semibold">Basic Information</h3>
+              <h3 className="mb-4 text-lg font-semibold">
+                {t("basicInformation")}
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Asset Name *</FormLabel>
+                      <FormLabel>{t("fields.name")} *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter asset name" {...field} />
+                        <Input
+                          placeholder={t("placeholders.enterAssetName")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -140,9 +152,12 @@ export default function AddAssetForm({
                   name="brand"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Brand</FormLabel>
+                      <FormLabel>{t("fields.brand")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter brand name" {...field} />
+                        <Input
+                          placeholder={t("placeholders.enterBrandName")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -154,9 +169,12 @@ export default function AddAssetForm({
                   name="model"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Model</FormLabel>
+                      <FormLabel>{t("fields.model")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter model" {...field} />
+                        <Input
+                          placeholder={t("placeholders.enterModel")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -168,9 +186,12 @@ export default function AddAssetForm({
                   name="serialNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Serial Number</FormLabel>
+                      <FormLabel>{t("fields.serialNumber")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter serial number" {...field} />
+                        <Input
+                          placeholder={t("placeholders.enterSerialNumber")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -182,9 +203,12 @@ export default function AddAssetForm({
                   name="barcode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Barcode</FormLabel>
+                      <FormLabel>{t("fields.barcode")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter barcode" {...field} />
+                        <Input
+                          placeholder={t("placeholders.enterBarcode")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -196,7 +220,7 @@ export default function AddAssetForm({
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel>{t("fields.status")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}

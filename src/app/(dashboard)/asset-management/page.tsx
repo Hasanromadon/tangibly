@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import UserManagement from "@/components/asset-management/UserManagement";
 import AssetList from "@/components/asset-management/AssetList";
 import AddAssetForm from "@/components/asset-management/AddAssetForm";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useNavigationTranslations } from "@/hooks/useTranslations";
 import { useAuth } from "@/contexts/AuthContext";
 import { Asset } from "@/services/asset-api";
 
@@ -16,42 +18,6 @@ interface TabConfig {
   requiredRoles?: string[];
   requiredPermissions?: string[];
 }
-
-const tabs: TabConfig[] = [
-  {
-    id: "dashboard",
-    label: "Dashboard",
-    component: DashboardOverview,
-  },
-  {
-    id: "assets",
-    label: "Assets",
-    component: AssetManagement,
-  },
-  {
-    id: "maintenance",
-    label: "Maintenance",
-    component: MaintenanceSchedule,
-  },
-  {
-    id: "reports",
-    label: "Reports",
-    component: Reports,
-    requiredRoles: ["admin", "manager", "super_admin"],
-  },
-  {
-    id: "users",
-    label: "Users",
-    component: UserManagement,
-    requiredRoles: ["admin", "super_admin"],
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    component: Settings,
-    requiredRoles: ["admin", "super_admin"],
-  },
-];
 
 // Placeholder components - replace with actual implementations
 function DashboardOverview() {
@@ -311,8 +277,45 @@ function Settings() {
 }
 
 export default function AssetManagementPage() {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("assets");
   const { user, logout } = useAuth();
+  const navT = useNavigationTranslations();
+
+  const tabs: TabConfig[] = [
+    {
+      id: "dashboard",
+      label: navT("dashboard"),
+      component: DashboardOverview,
+    },
+    {
+      id: "assets",
+      label: navT("assets"),
+      component: AssetManagement,
+    },
+    {
+      id: "maintenance",
+      label: navT("maintenance"),
+      component: MaintenanceSchedule,
+    },
+    {
+      id: "reports",
+      label: navT("reports"),
+      component: Reports,
+      requiredRoles: ["admin", "manager", "super_admin"],
+    },
+    {
+      id: "users",
+      label: navT("users"),
+      component: UserManagement,
+      requiredRoles: ["admin", "super_admin"],
+    },
+    {
+      id: "settings",
+      label: navT("settings"),
+      component: Settings,
+      requiredRoles: ["admin", "super_admin"],
+    },
+  ];
 
   if (!user) {
     return null; // Will be handled by AuthProvider redirect
@@ -358,6 +361,7 @@ export default function AssetManagementPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <LanguageSwitcher />
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">
                   {user.firstName} {user.lastName}

@@ -16,6 +16,10 @@ import { createAssetColumns } from "./asset-table-columns";
 import { Search, Plus, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAssets, useDeleteAsset } from "@/hooks/useAssets";
+import {
+  useAssetTranslations,
+  useCommonTranslations,
+} from "@/hooks/useTranslations";
 import { Asset } from "@/services/asset-api";
 
 interface AssetListProps {
@@ -34,6 +38,10 @@ export default function AssetList({
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
+
+  // Initialize translations
+  const t = useAssetTranslations();
+  const commonT = useCommonTranslations();
 
   // Build query options for React Query in the correct format
   const queryOptions = {
@@ -58,21 +66,21 @@ export default function AssetList({
   const totalCount = data?.pagination?.total || 0;
 
   const handleDeleteAsset = async (assetId: string) => {
-    if (!confirm("Are you sure you want to delete this asset?")) {
+    if (!confirm(t("confirmDelete"))) {
       return;
     }
 
     try {
       await deleteAssetMutation.mutateAsync(assetId);
       toast({
-        title: "Success",
-        description: "Asset deleted successfully",
+        title: commonT("success"),
+        description: t("deleteSuccess"),
       });
     } catch (error) {
       console.error("Error deleting asset:", error);
       toast({
-        title: "Error",
-        description: "Failed to delete asset. Please try again.",
+        title: commonT("error"),
+        description: t("deleteError"),
         variant: "destructive",
       });
     }
@@ -90,20 +98,20 @@ export default function AssetList({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Asset Management</h1>
-          <p className="text-gray-600">Manage your company assets</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
+          <p className="text-gray-600">{t("subtitle")}</p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {t("export")}
           </Button>
           <Button
             onClick={onAddAsset}
             className="bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add Asset
+            {t("add")}
           </Button>
         </div>
       </div>
@@ -115,7 +123,7 @@ export default function AssetList({
             <div className="relative">
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
               <Input
-                placeholder="Search assets by name, serial number, or barcode..."
+                placeholder={t("search")}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -125,22 +133,24 @@ export default function AssetList({
           <div className="flex gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t("filters.status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="disposed">Disposed</SelectItem>
+                <SelectItem value="all">{t("allStatus")}</SelectItem>
+                <SelectItem value="active">{t("status.active")}</SelectItem>
+                <SelectItem value="inactive">{t("status.inactive")}</SelectItem>
+                <SelectItem value="maintenance">
+                  {t("status.maintenance")}
+                </SelectItem>
+                <SelectItem value="disposed">{t("status.disposed")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t("filters.category")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">{t("allCategories")}</SelectItem>
                 {/* TODO: Add actual categories */}
               </SelectContent>
             </Select>
@@ -152,17 +162,17 @@ export default function AssetList({
         columns={columns}
         data={assets}
         loading={loading}
-        loadingMessage="Loading assets..."
-        emptyMessage="No assets found"
-        emptyDescription="Get started by adding your first asset"
+        loadingMessage={t("loading")}
+        emptyMessage={t("noAssets")}
+        emptyDescription={t("noAssetsDescription")}
         emptyAction={
           <Button onClick={onAddAsset} size="sm">
             <Plus className="mr-2 h-4 w-4" />
-            Add Asset
+            {t("add")}
           </Button>
         }
         searchKey="name"
-        searchPlaceholder="Search assets..."
+        searchPlaceholder={t("searchPlaceholder")}
         showSearch={false} // We're using custom filters above
         showColumnToggle={true}
         pagination={true}
