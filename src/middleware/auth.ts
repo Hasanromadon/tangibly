@@ -135,6 +135,25 @@ function getClientIP(request: NextRequest): string {
   return "unknown";
 }
 
+// Role normalization function to handle database role format
+export function normalizeRole(role: string): Role {
+  const roleMap: Record<string, Role> = {
+    super_admin: ROLES.SUPER_ADMIN,
+    admin: ROLES.ADMIN,
+    manager: ROLES.MANAGER,
+    user: ROLES.USER,
+    viewer: ROLES.VIEWER,
+    // Also handle uppercase variants
+    SUPER_ADMIN: ROLES.SUPER_ADMIN,
+    ADMIN: ROLES.ADMIN,
+    MANAGER: ROLES.MANAGER,
+    USER: ROLES.USER,
+    VIEWER: ROLES.VIEWER,
+  };
+
+  return roleMap[role] || ROLES.VIEWER; // Default to viewer if role not found
+}
+
 // Utility functions for role and permission management
 export function hasPermission(userRole: Role, permission: Permission): boolean {
   const permissions = ROLE_PERMISSIONS[userRole];

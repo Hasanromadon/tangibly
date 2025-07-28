@@ -85,6 +85,7 @@ export default function AddAssetForm({
         data as Record<string, unknown>
       );
 
+      console.log("Submitting asset data:", submitData);
       await createAssetMutation.createAssetAsync(submitData);
 
       // Reset form and close dialog

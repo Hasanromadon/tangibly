@@ -1,7 +1,16 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/database/prisma";
-import { type AuthenticatedUser, ROLES } from "@/lib/auth-middleware";
-import { successResponse, errorResponse } from "@/lib/api-response";
+import {
+  authenticate,
+  hasPermission,
+  PERMISSIONS,
+  normalizeRole,
+} from "@/middleware/auth";
+import {
+  successResponse,
+  errorResponse,
+  unauthorizedResponse,
+} from "@/lib/api-response";
 
 // GET /api/assets/[id] - Get single asset
 async function getAssetHandler(
@@ -9,13 +18,23 @@ async function getAssetHandler(
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = (request as unknown as { user: AuthenticatedUser }).user;
-    const { id } = params;
+    // Authenticate user
+    const { user, error } = await authenticate(request);
+    if (error) return error;
+    if (!user) return unauthorizedResponse();
 
+    // Check permissions
+    const normalizedRole = normalizeRole(user.role);
+    if (!hasPermission(normalizedRole, PERMISSIONS.ASSET_READ)) {
+      return unauthorizedResponse("Insufficient permissions to read assets");
+    }
+
+    const { id } = params;
     const baseWhere: { id: string; companyId?: string } = { id };
 
     // Users can only see assets from their company (except super admin)
-    if (user.role !== ROLES.SUPER_ADMIN && user.companyId) {
+    const isSuperAdmin = normalizedRole === "SUPER_ADMIN";
+    if (!isSuperAdmin && user.companyId) {
       baseWhere.companyId = user.companyId;
     }
 
@@ -51,13 +70,23 @@ async function deleteAssetHandler(
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = (request as unknown as { user: AuthenticatedUser }).user;
-    const { id } = params;
+    // Authenticate user
+    const { user, error } = await authenticate(request);
+    if (error) return error;
+    if (!user) return unauthorizedResponse();
 
+    // Check permissions
+    const normalizedRole = normalizeRole(user.role);
+    if (!hasPermission(normalizedRole, PERMISSIONS.ASSET_DELETE)) {
+      return unauthorizedResponse("Insufficient permissions to delete assets");
+    }
+
+    const { id } = params;
     const baseWhere: { id: string; companyId?: string } = { id };
 
     // Users can only delete assets from their company (except super admin)
-    if (user.role !== ROLES.SUPER_ADMIN && user.companyId) {
+    const isSuperAdmin = normalizedRole === "SUPER_ADMIN";
+    if (!isSuperAdmin && user.companyId) {
       baseWhere.companyId = user.companyId;
     }
 

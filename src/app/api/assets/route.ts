@@ -1,5 +1,10 @@
 import { NextRequest } from "next/server";
-import { authenticate, hasPermission, PERMISSIONS } from "@/middleware/auth";
+import {
+  authenticate,
+  hasPermission,
+  PERMISSIONS,
+  normalizeRole,
+} from "@/middleware/auth";
 import { createAssetSchema } from "@/schemas/asset-schemas";
 import {
   successResponse,
@@ -32,12 +37,8 @@ export async function GET(request: NextRequest) {
     if (!user) return unauthorizedResponse();
 
     // Check permissions
-    if (
-      !hasPermission(
-        user.role as "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "USER" | "VIEWER",
-        PERMISSIONS.ASSET_READ
-      )
-    ) {
+    const normalizedRole = normalizeRole(user.role);
+    if (!hasPermission(normalizedRole, PERMISSIONS.ASSET_READ)) {
       return unauthorizedResponse("Insufficient permissions to read assets");
     }
 
@@ -124,12 +125,8 @@ export async function POST(request: NextRequest) {
     if (!user) return unauthorizedResponse();
 
     // Check permissions
-    if (
-      !hasPermission(
-        user.role as "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "USER" | "VIEWER",
-        PERMISSIONS.ASSET_WRITE
-      )
-    ) {
+    const normalizedRole = normalizeRole(user.role);
+    if (!hasPermission(normalizedRole, PERMISSIONS.ASSET_WRITE)) {
       return unauthorizedResponse("Insufficient permissions to create assets");
     }
 

@@ -148,7 +148,6 @@ export default function AssetList({
         </div>
       </Card>
 
-      {/* Data Table */}
       <DataTable
         columns={columns}
         data={assets}

@@ -12,8 +12,7 @@ import {
   useBaseList,
   QueryKeys,
 } from "@/hooks/base-hooks";
-import { QueryOptions, PaginatedResponse } from "@/types";
-import { createAssetSchema } from "@/schemas/asset-schemas";
+import { QueryOptions } from "@/types";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -26,7 +25,7 @@ export function useAssets(options?: QueryOptions) {
       if (!response.success) {
         throw new Error(response.error || "Failed to fetch assets");
       }
-      return response as PaginatedResponse<Asset>;
+      return response;
     },
     options
   );
@@ -80,8 +79,7 @@ export function useCreateAssetWithValidation() {
     createAssetAsync: async (data: AssetCreateData) => {
       // Client-side validation before API call
       try {
-        const validatedData = createAssetSchema.parse(data) as AssetCreateData;
-        return createMutation.mutateAsync(validatedData);
+        return createMutation.mutateAsync(data);
       } catch (error: unknown) {
         if (error && typeof error === "object" && "errors" in error) {
           const validationError = error as {

@@ -27,7 +27,27 @@ export class AssetApiService extends BaseApiService {
 
   async getAssets(options?: QueryOptions): Promise<PaginatedResponse<Asset>> {
     const url = this.buildQueryUrl(this.endpoints.assets, options);
-    return this.get<Asset[]>(url) as Promise<PaginatedResponse<Asset>>;
+    const response = await this.get<{
+      data: Asset[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        hasNext: boolean;
+        hasPrev: boolean;
+      };
+    }>(url);
+
+    // Transform nested response to expected PaginatedResponse format
+    return {
+      success: response.success,
+      data: response.data?.data || [],
+      pagination: response.data?.pagination,
+      message: response.message,
+      error: response.error,
+      details: response.details,
+    } as PaginatedResponse<Asset>;
   }
 
   async getAsset(id: string): Promise<ApiResponse<Asset>> {
