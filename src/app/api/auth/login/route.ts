@@ -7,13 +7,7 @@ import {
   errorResponse,
   validationErrorResponse,
 } from "@/lib/api-response";
-
-// Validation schema
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address").toLowerCase(),
-  password: z.string().min(1, "Password is required"),
-  remember: z.boolean().optional(),
-});
+import { loginSchema } from "@/schemas";
 
 // POST /api/auth/login - Authenticate user and return JWT token
 async function loginHandler(request: NextRequest) {

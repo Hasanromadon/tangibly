@@ -1,24 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+
 import { prisma } from "@/lib/database/prisma";
 import { verifyToken, generateToken, validatePhone } from "@/lib/auth";
-import { middleware, type AuthenticatedUser } from "@/lib/auth-middleware";
-import {
-  successResponse,
-  errorResponse,
-  validationErrorResponse,
-} from "@/lib/api-response";
-
-const inviteUserSchema = z.object({
-  email: z.string().email("Invalid email address").toLowerCase(),
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  role: z.enum(["admin", "manager", "user", "viewer"]),
-  department: z.string().optional(),
-  position: z.string().optional(),
-  phone: z.string().optional(),
-  permissions: z.array(z.string()).optional(),
-});
+import { inviteUserSchema } from "@/schemas/invite-schemas";
 
 export async function POST(request: NextRequest) {
   try {
