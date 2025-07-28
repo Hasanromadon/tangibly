@@ -4,7 +4,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import UserManagement from "@/components/asset-management/UserManagement";
-import { useAuth, RoleGuard } from "@/contexts/AuthContext";
+import AssetList from "@/components/asset-management/AssetList";
+import AddAssetForm from "@/components/asset-management/AddAssetForm";
+import { useAuth } from "@/contexts/AuthContext";
+import { Asset } from "@/services/asset-api";
 
 interface TabConfig {
   id: string;
@@ -23,7 +26,7 @@ const tabs: TabConfig[] = [
   {
     id: "assets",
     label: "Assets",
-    component: AssetList,
+    component: AssetManagement,
   },
   {
     id: "maintenance",
@@ -229,20 +232,40 @@ function DashboardOverview() {
   );
 }
 
-function AssetList() {
+function AssetManagement() {
+  const [showAddAssetForm, setShowAddAssetForm] = useState(false);
+
+  const handleAddAsset = () => {
+    setShowAddAssetForm(true);
+  };
+
+  const handleEditAsset = (asset: Asset) => {
+    console.log("Edit asset:", asset);
+    // TODO: Implement edit functionality
+  };
+
+  const handleViewAsset = (asset: Asset) => {
+    console.log("View asset:", asset);
+    // TODO: Implement view functionality
+  };
+
+  const handleAssetSuccess = () => {
+    // Refresh will be handled by the AssetList component
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Asset Management</h1>
-        <Button className="bg-blue-600 text-white hover:bg-blue-700">
-          Add New Asset
-        </Button>
-      </div>
-      <Card className="p-6">
-        <p className="text-gray-600">
-          Asset list and management functionality will be implemented here.
-        </p>
-      </Card>
+      <AssetList
+        onAddAsset={handleAddAsset}
+        onEditAsset={handleEditAsset}
+        onViewAsset={handleViewAsset}
+      />
+
+      <AddAssetForm
+        open={showAddAssetForm}
+        onClose={() => setShowAddAssetForm(false)}
+        onSuccess={handleAssetSuccess}
+      />
     </div>
   );
 }

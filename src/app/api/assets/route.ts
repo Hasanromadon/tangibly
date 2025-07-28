@@ -1,220 +1,292 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/database/prisma";
-import { z } from "zod";
-import {
-  middleware,
-  type AuthenticatedUser,
-  ROLES,
-} from "@/lib/auth-middleware";
+import { authenticate, hasPermission, PERMISSIONS } from "@/middleware/auth";
+import { createAssetSchema } from "@/schemas/asset-schemas";
 import {
   successResponse,
   errorResponse,
   validationErrorResponse,
+  unauthorizedResponse,
 } from "@/lib/api-response";
-import { createAssetSchema } from "@/schemas/assets-schemas";
+import { ZodError } from "zod";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { prisma } from "@/lib/database/prisma";
+import { Prisma } from "@prisma/client";
 
-// Helper function to generate asset number
-async function generateAssetNumber(
-  companyId: string,
-  categoryCode?: string
-): Promise<string> {
-  const year = new Date().getFullYear();
-  const prefix = categoryCode ? categoryCode.toUpperCase() : "AST";
-
-  // Get the last asset number for this company and category
-  const lastAsset = await prisma.asset.findFirst({
-    where: {
-      companyId,
-      assetNumber: {
-        startsWith: `${prefix}-${year}-`,
-      },
-    },
-    orderBy: {
-      assetNumber: "desc",
-    },
-  });
-
-  let nextNumber = 1;
-  if (lastAsset) {
-    const lastNumberMatch = lastAsset.assetNumber.match(/-(\d+)$/);
-    if (lastNumberMatch) {
-      nextNumber = parseInt(lastNumberMatch[1]) + 1;
-    }
-  }
-
-  return `${prefix}-${year}-${nextNumber.toString().padStart(4, "0")}`;
+// Generate unique asset number
+async function generateAssetNumber(): Promise<string> {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 5);
+  return `AST-${timestamp}-${random}`.toUpperCase();
 }
 
-// Helper function to calculate book value
-function calculateBookValue(
-  purchaseCost: number,
-  accumulatedDepreciation: number,
-  salvageValue: number
-): number {
-  return Math.max(purchaseCost - accumulatedDepreciation, salvageValue);
-}
-
-// GET /api/assets - List assets with filtering and pagination
-// GET /api/assets - List assets (company-scoped access)
-async function getAssetsHandler(request: NextRequest) {
+/**
+ * GET /api/assets
+ * Retrieve paginated list of assets with filtering and sorting
+ * Security: Requires authentication, company-scoped data access
+ */
+export async function GET(request: NextRequest) {
   try {
-    const user = (request as unknown as { user: AuthenticatedUser }).user;
-    const { searchParams } = new URL(request.url);
+    // Authenticate user
+    const { user, error } = await authenticate(request);
+    if (error) return error;
+    if (!user) return unauthorizedResponse();
+
+    // Check permissions
+    if (
+      !hasPermission(
+        user.role as "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "USER" | "VIEWER",
+        PERMISSIONS.ASSET_READ
+      )
+    ) {
+      return unauthorizedResponse("Insufficient permissions to read assets");
+    }
+
+    if (!user.companyId) {
+      return errorResponse("User not associated with a company", 400);
+    }
+    // Parse query parameters
+    const url = new URL(request.url);
+    const searchParams = url.searchParams;
+
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
-    const categoryId = searchParams.get("categoryId") || "";
     const status = searchParams.get("status") || "";
-    const skip = (page - 1) * limit;
 
-    const baseWhere: { companyId?: string } = {};
+    // Calculate offset for pagination
+    const offset = (page - 1) * limit;
 
-    // Users can only see assets from their company (except super admin)
-    if (user.role !== ROLES.SUPER_ADMIN && user.companyId) {
-      baseWhere.companyId = user.companyId;
-    }
-
-    const searchConditions = [];
-    if (search) {
-      searchConditions.push(
-        { name: { contains: search, mode: "insensitive" as const } },
-        { description: { contains: search, mode: "insensitive" as const } },
-        { serialNumber: { contains: search, mode: "insensitive" as const } },
-        { barcode: { contains: search, mode: "insensitive" as const } }
-      );
-    }
-
-    const where = {
-      ...baseWhere,
-      ...(categoryId && { categoryId }),
-      ...(status && { status }),
-      ...(searchConditions.length > 0 && { OR: searchConditions }),
+    // Build where clause for filtering with company scoping
+    const where: Prisma.AssetWhereInput = {
+      companyId: user.companyId, // Scope to user's company
     };
 
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { assetNumber: { contains: search, mode: "insensitive" } },
+        { brand: { contains: search, mode: "insensitive" } },
+        { model: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    // Fetch assets with pagination
     const [assets, total] = await Promise.all([
       prisma.asset.findMany({
         where,
-        skip,
+        skip: offset,
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
           category: { select: { id: true, name: true } },
           location: { select: { id: true, name: true } },
           assignee: { select: { id: true, firstName: true, lastName: true } },
-          company: { select: { id: true, name: true } },
+          creator: { select: { id: true, firstName: true, lastName: true } },
         },
       }),
       prisma.asset.count({ where }),
     ]);
 
-    return successResponse(
-      {
-        assets,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-        },
+    const result = {
+      data: assets,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1,
       },
-      "Assets retrieved successfully"
-    );
+    };
+
+    return successResponse(result, "Assets retrieved successfully");
   } catch (error) {
     console.error("Error fetching assets:", error);
-    return errorResponse("Failed to fetch assets");
+    return errorResponse("Failed to fetch assets", 500);
   }
 }
 
-export async function GET(request: NextRequest) {
-  return middleware.asset.companyScoped(getAssetsHandler)(request, {});
-}
-
-// POST /api/assets - Create new asset
-// POST /api/assets - Create new asset
-async function createAssetHandler(request: NextRequest) {
+/**
+ * POST /api/assets
+ * Create a new asset with comprehensive validation and business rules
+ * Security: Requires authentication and 'asset:create' permission
+ */
+export async function POST(request: NextRequest) {
   try {
-    const user = (request as unknown as { user: AuthenticatedUser }).user;
-    const body = await request.json();
-    const validatedData = createAssetSchema.parse(body);
+    // Authenticate user
+    const { user, error } = await authenticate(request);
+    if (error) return error;
+    if (!user) return unauthorizedResponse();
 
-    // Get category for asset number generation
-    let categoryCode = "AST";
-    if (validatedData.categoryId) {
-      const category = await prisma.assetCategory.findUnique({
-        where: { id: validatedData.categoryId },
-        select: { code: true },
+    // Check permissions
+    if (
+      !hasPermission(
+        user.role as "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "USER" | "VIEWER",
+        PERMISSIONS.ASSET_WRITE
+      )
+    ) {
+      return unauthorizedResponse("Insufficient permissions to create assets");
+    }
+
+    if (!user.companyId) {
+      return errorResponse("User not associated with a company", 400);
+    }
+
+    // Parse and validate request body
+    const body = await request.json();
+
+    // Add company context from authenticated user
+    const assetData = {
+      ...body,
+      companyId: user.companyId,
+    };
+
+    // Validate asset data with comprehensive business rules
+    const validatedData = createAssetSchema.parse(assetData);
+
+    // Generate unique asset number
+    const assetNumber = await generateAssetNumber();
+
+    // Create asset in database with transaction
+    const newAsset = await prisma.$transaction(async tx => {
+      // Check for duplicate serial number if provided
+      if (validatedData.serialNumber) {
+        const existingAsset = await tx.asset.findFirst({
+          where: {
+            serialNumber: validatedData.serialNumber,
+            companyId: user.companyId,
+          },
+        });
+
+        if (existingAsset) {
+          throw new Error(
+            "BUSINESS_RULE: Asset with this serial number already exists"
+          );
+        }
+      }
+
+      // Calculate initial book value for financial assets
+      const bookValue = validatedData.purchaseCost
+        ? validatedData.purchaseCost - validatedData.salvageValue
+        : null;
+
+      // Prepare asset data for creation
+      const assetCreateData: Prisma.AssetCreateInput = {
+        assetNumber,
+        name: validatedData.name,
+        description: validatedData.description,
+        brand: validatedData.brand,
+        model: validatedData.model,
+        serialNumber: validatedData.serialNumber,
+        barcode: validatedData.barcode,
+        purchaseCost: validatedData.purchaseCost,
+        purchaseDate: validatedData.purchaseDate
+          ? new Date(validatedData.purchaseDate)
+          : null,
+        purchaseOrderNumber: validatedData.purchaseOrderNumber,
+        invoiceNumber: validatedData.invoiceNumber,
+        warrantyExpiresAt: validatedData.warrantyExpiresAt
+          ? new Date(validatedData.warrantyExpiresAt)
+          : null,
+        depreciationMethod: validatedData.depreciationMethod,
+        usefulLifeYears: validatedData.usefulLifeYears,
+        salvageValue: validatedData.salvageValue,
+        bookValue,
+        accumulatedDepreciation: 0,
+        status: validatedData.status,
+        condition: validatedData.condition,
+        criticality: validatedData.criticality,
+        energyRating: validatedData.energyRating,
+        carbonFootprint: validatedData.carbonFootprint,
+        recyclable: validatedData.recyclable,
+        ipAddress: validatedData.ipAddress,
+        macAddress: validatedData.macAddress,
+        operatingSystem: validatedData.operatingSystem,
+        securityClassification: validatedData.securityClassification,
+        notes: validatedData.notes,
+        company: {
+          connect: { id: user.companyId },
+        },
+        // Connect category if provided
+        ...(validatedData.categoryId && {
+          category: { connect: { id: validatedData.categoryId } },
+        }),
+        // Connect location if provided
+        ...(validatedData.locationId && {
+          location: { connect: { id: validatedData.locationId } },
+        }),
+        // Connect vendor if provided
+        ...(validatedData.vendorId && {
+          vendor: { connect: { id: validatedData.vendorId } },
+        }),
+        // Connect assignee if provided
+        ...(validatedData.assignedTo && {
+          assignee: { connect: { id: validatedData.assignedTo } },
+        }),
+      };
+
+      // Create the asset
+      const asset = await tx.asset.create({
+        data: assetCreateData,
+        include: {
+          category: { select: { id: true, name: true } },
+          location: { select: { id: true, name: true } },
+          assignee: { select: { id: true, firstName: true, lastName: true } },
+          creator: { select: { id: true, firstName: true, lastName: true } },
+        },
       });
-      if (category) {
-        categoryCode = category.code;
+
+      // TODO: Log asset creation for audit trail
+      // await tx.auditLog.create({
+      //   data: {
+      //     companyId: validatedData.companyId,
+      //     entityType: 'ASSET',
+      //     entityId: asset.id,
+      //     action: 'CREATE',
+      //     performedBy: validatedData.createdBy!,
+      //     details: JSON.stringify({
+      //       assetName: asset.name,
+      //       assetNumber: asset.assetNumber,
+      //     }),
+      //   },
+      // });
+
+      return asset;
+    });
+
+    return successResponse(newAsset, "Asset created successfully", 201);
+  } catch (error) {
+    console.error("Error creating asset:", error);
+
+    if (error instanceof ZodError) {
+      return validationErrorResponse(error.issues);
+    }
+
+    if (error instanceof PrismaClientKnownRequestError) {
+      // Handle database constraint violations
+      if (error.code === "P2002") {
+        const field = error.meta?.target as string[];
+        return errorResponse(
+          `Asset with this ${field?.[0] || "field"} already exists`,
+          409
+        );
+      }
+
+      if (error.code === "P2003") {
+        return errorResponse("Referenced entity not found", 400);
       }
     }
 
-    // Generate asset number
-    const assetNumber = await generateAssetNumber(
-      user.companyId!,
-      categoryCode
-    );
-
-    // Calculate book value if purchase cost is provided
-    let bookValue: number | undefined;
-    if (validatedData.purchaseCost) {
-      bookValue = calculateBookValue(
-        validatedData.purchaseCost,
-        0, // New asset has no accumulated depreciation
-        validatedData.salvageValue
-      );
+    // Handle custom business logic errors
+    if (error instanceof Error && error.message.includes("BUSINESS_RULE")) {
+      return errorResponse(error.message.replace("BUSINESS_RULE: ", ""), 400);
     }
 
-    // Generate QR code data
-    const qrCode = JSON.stringify({
-      assetNumber,
-      name: validatedData.name,
-      category: validatedData.categoryId,
-      location: validatedData.locationId,
-    });
-
-    const asset = await prisma.asset.create({
-      data: {
-        ...validatedData,
-        companyId: user.companyId!,
-        assetNumber,
-        qrCode,
-        bookValue,
-        purchaseDate: validatedData.purchaseDate
-          ? new Date(validatedData.purchaseDate)
-          : undefined,
-        warrantyExpiresAt: validatedData.warrantyExpiresAt
-          ? new Date(validatedData.warrantyExpiresAt)
-          : undefined,
-        customFields: JSON.parse(JSON.stringify(validatedData.customFields)),
-        createdBy: user.id,
-      },
-      include: {
-        category: {
-          select: { id: true, name: true, code: true, icon: true, color: true },
-        },
-        location: {
-          select: { id: true, name: true, code: true },
-        },
-        vendor: {
-          select: { id: true, name: true, code: true },
-        },
-        assignee: {
-          select: { id: true, firstName: true, lastName: true, email: true },
-        },
-      },
-    });
-
-    return successResponse(asset, "Asset created successfully", 201);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return validationErrorResponse(error);
-    }
-    console.error("Error creating asset:", error);
-    return errorResponse("Failed to create asset");
+    return errorResponse("Failed to create asset", 500);
   }
-}
-
-export async function POST(request: NextRequest) {
-  return middleware.asset.write(createAssetHandler)(request, {});
 }

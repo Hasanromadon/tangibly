@@ -13,6 +13,9 @@ import {
   QueryKeys,
 } from "@/hooks/base-hooks";
 import { QueryOptions, PaginatedResponse } from "@/types";
+import { createAssetSchema } from "@/schemas/asset-schemas";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Get paginated assets list
 export function useAssets(options?: QueryOptions) {
@@ -43,19 +46,59 @@ export function useAsset(id: string) {
   );
 }
 
-// Create new asset mutation
+// Create new asset mutation with comprehensive error handling
 export function useCreateAsset() {
+  const queryClient = useQueryClient();
+
   return useBaseMutation<Asset, AssetCreateData>(
     async data => {
       const response = await assetApiService.createAsset(data);
       return validateApiResponse(response);
     },
     {
-      successMessage: "Asset created successfully!",
-      errorMessage: "Failed to create asset. Please try again.",
-      invalidateQueries: [[...QueryKeys.assets.lists()]],
+      onSuccess: asset => {
+        toast.success(`Asset "${asset.name}" created successfully`);
+        // Invalidate and refetch assets list
+        queryClient.invalidateQueries({ queryKey: QueryKeys.assets.all });
+        // Update the asset detail cache
+        queryClient.setQueryData(QueryKeys.assets.detail(asset.id), asset);
+      },
+      onError: error => {
+        console.error("Error creating asset:", error);
+        toast.error(error.message || "Failed to create asset");
+      },
     }
   );
+}
+
+// Enhanced create asset hook with form validation
+export function useCreateAssetWithValidation() {
+  const createMutation = useCreateAsset();
+
+  return {
+    ...createMutation,
+    createAssetAsync: async (data: AssetCreateData) => {
+      // Client-side validation before API call
+      try {
+        const validatedData = createAssetSchema.parse(data) as AssetCreateData;
+        return createMutation.mutateAsync(validatedData);
+      } catch (error: unknown) {
+        if (error && typeof error === "object" && "errors" in error) {
+          const validationError = error as {
+            errors: Array<{ path: string[]; message: string }>;
+          };
+          const errorMessage =
+            validationError.errors
+              ?.map(err => `${err.path.join(".")}: ${err.message}`)
+              .join(", ") || "Validation failed";
+
+          throw new Error(errorMessage);
+        }
+
+        throw new Error("Validation failed");
+      }
+    },
+  };
 }
 
 // Update asset mutation
