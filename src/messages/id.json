@@ -187,7 +187,8 @@
       "enterUsefulLifeYears": "Masukkan umur ekonomis dalam tahun",
       "enterEnergyRating": "Masukkan rating energi",
       "enterCarbonFootprint": "Masukkan jejak karbon",
-      "enterNotes": "Masukkan catatan tambahan"
+      "enterNotes": "Masukkan catatan tambahan",
+      "enterAnyAdditionalNotes": "Masukkan catatan tambahan jika ada"
     },
     "filters": {
       "status": "Status",
@@ -195,21 +196,25 @@
       "location": "Lokasi"
     },
     "fields": {
+      "additionalNotes": "Catatan Tambahan",
       "name": "Nama Aset",
       "brand": "Merek",
       "model": "Model",
       "description": "Deskripsi",
       "category": "Kategori",
+      "confidential": "Rahasia",
       "location": "Lokasi",
       "serialNumber": "Nomor Seri",
       "barcode": "Barcode",
       "status": "Status",
       "condition": "Kondisi",
       "criticality": "Kritikalitas",
+      "public": "Publik",
       "purchaseDate": "Tanggal Pembelian",
       "purchasePrice": "Harga Beli",
       "purchaseCost": "Biaya Pembelian",
       "purchaseOrderNumber": "Nomor Order Pembelian",
+      "internal": "Internal",
       "invoiceNumber": "Nomor Invoice",
       "currentValue": "Nilai Saat Ini",
       "assignedTo": "Ditugaskan Kepada",
@@ -223,6 +228,7 @@
       "ipAddress": "Alamat IP",
       "macAddress": "Alamat MAC",
       "operatingSystem": "Sistem Operasi",
+      "restricted": "Terbatas",
       "securityClassification": "Klasifikasi Keamanan",
       "energyRating": "Rating Energi",
       "carbonFootprint": "Jejak Karbon",

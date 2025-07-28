@@ -30,7 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useCreateAssetWithValidation } from "@/hooks/useAssets";
-import { assetFormSchema } from "@/schemas/asset-schemas";
+import { assetFormSchema } from "@/schemas/assets-schemas";
 import { transformFormToApiData } from "@/types/asset-types";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import {
@@ -376,7 +376,7 @@ export default function AddAssetForm({
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder={t("placeholders.zero")}
+                          placeholder={t("placeholders.enterPurchaseCost")}
                           step="0.01"
                           {...field}
                         />
@@ -408,7 +408,9 @@ export default function AddAssetForm({
                       <FormLabel>{t("fields.purchaseOrderNumber")}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t("placeholders.enterPONumber")}
+                          placeholder={t(
+                            "placeholders.enterPurchaseOrderNumber"
+                          )}
                           {...field}
                         />
                       </FormControl>
@@ -457,7 +459,7 @@ export default function AddAssetForm({
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder={t("placeholders.zero")}
+                          placeholder={t("placeholders.enterSalvageValue")}
                           step="0.01"
                           {...field}
                         />
@@ -595,12 +597,18 @@ export default function AddAssetForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="public">Public</SelectItem>
-                          <SelectItem value="internal">Internal</SelectItem>
-                          <SelectItem value="confidential">
-                            Confidential
+                          <SelectItem value="public">
+                            {t("fields.public")}
                           </SelectItem>
-                          <SelectItem value="restricted">Restricted</SelectItem>
+                          <SelectItem value="internal">
+                            {t("fields.internal")}
+                          </SelectItem>
+                          <SelectItem value="confidential">
+                            {t("fields.confidential")}
+                          </SelectItem>
+                          <SelectItem value="restricted">
+                            {t("fields.restricted")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -621,7 +629,7 @@ export default function AddAssetForm({
                   name="energyRating"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Energy Rating</FormLabel>
+                      <FormLabel>{t("fields.energyRating")}</FormLabel>
                       <FormControl>
                         <Input placeholder="A+, B, C, etc." {...field} />
                       </FormControl>
@@ -635,7 +643,9 @@ export default function AddAssetForm({
                   name="carbonFootprint"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Carbon Footprint (kg CO2)</FormLabel>
+                      <FormLabel>
+                        {t("fields.carbonFootprint")} (kg CO2)
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -661,7 +671,7 @@ export default function AddAssetForm({
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Recyclable</FormLabel>
+                        <FormLabel>{t("fields.recyclable")}</FormLabel>
                       </div>
                     </FormItem>
                   )}
@@ -671,7 +681,9 @@ export default function AddAssetForm({
 
             {/* Notes */}
             <Card className="p-4">
-              <h3 className="mb-4 text-lg font-semibold">Additional Notes</h3>
+              <h3 className="mb-4 text-lg font-semibold">
+                {t("fields.additionalNotes")}
+              </h3>
               <FormField
                 control={form.control}
                 name="notes"
@@ -679,7 +691,7 @@ export default function AddAssetForm({
                   <FormItem>
                     <FormControl>
                       <Textarea
-                        placeholder="Enter any additional notes or comments"
+                        placeholder={t("placeholders.enterAnyAdditionalNotes")}
                         rows={4}
                         {...field}
                       />
@@ -707,7 +719,7 @@ export default function AddAssetForm({
                     {t("creating")}
                   </>
                 ) : (
-                  t("createAsset")
+                  t("create")
                 )}
               </Button>
             </div>

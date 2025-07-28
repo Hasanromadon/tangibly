@@ -5,7 +5,7 @@ import {
   PERMISSIONS,
   normalizeRole,
 } from "@/middleware/auth";
-import { createAssetSchema } from "@/schemas/asset-schemas";
+import { createAssetSchema } from "@/schemas/assets-schemas";
 import {
   successResponse,
   errorResponse,

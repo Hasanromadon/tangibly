@@ -173,6 +173,7 @@
       "damaged": "Damaged"
     },
     "placeholders": {
+      "enterAnyAdditionalNotes": "Enter any additional notes",
       "enterAssetName": "Enter asset name",
       "enterBrandName": "Enter brand name",
       "enterModel": "Enter model",
@@ -197,6 +198,7 @@
       "location": "Location"
     },
     "fields": {
+      "additionalNotes": "Additional Notes",
       "name": "Asset Name",
       "brand": "Brand",
       "model": "Model",
@@ -208,6 +210,10 @@
       "status": "Status",
       "condition": "Condition",
       "criticality": "Criticality",
+      "public": "Public",
+      "internal": "Internal",
+      "confidential": "Confidential",
+      "restricted": "Restricted",
       "purchaseDate": "Purchase Date",
       "purchasePrice": "Purchase Price",
       "purchaseCost": "Purchase Cost",
