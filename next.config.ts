@@ -147,16 +147,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Bundle optimization
-  modularizeImports: {
-    "lucide-react": {
-      transform: "lucide-react/dist/esm/icons/{{member}}",
-    },
-    "@radix-ui/react-icons": {
-      transform: "@radix-ui/react-icons/dist/{{member}}.js",
-    },
-  },
-
   // Strict mode for better development experience
   reactStrictMode: true,
 

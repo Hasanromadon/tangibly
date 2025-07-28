@@ -231,8 +231,25 @@ export class ApiServiceFactory {
 
 // Response validation helper
 export function validateApiResponse<T>(response: ApiResponse<T>): T {
-  if (!response.success || !response.data) {
-    throw new Error(response.error || "Invalid API response");
+  if (!response.success) {
+    // Create a proper error with the API error message
+    const error = new Error(response.error || "API request failed") as Error & {
+      status?: number;
+      code?: string;
+      details?: unknown;
+    };
+
+    // Add additional error properties if available
+    if (response.details) {
+      error.details = response.details;
+    }
+
+    throw error;
   }
+
+  if (!response.data) {
+    throw new Error("Invalid API response: missing data");
+  }
+
   return response.data;
 }

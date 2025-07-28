@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/database/prisma";
-import { validateNPWP, validatePhone } from "@/lib/auth";
+import { validateNPWP, validatePhone, generateToken } from "@/lib/auth";
 
 // API-specific schema that matches the expected payload structure
 const apiRegisterSchema = z.object({
@@ -32,7 +32,11 @@ export async function POST(request: NextRequest) {
     if (!validation.success) {
       console.log("Validation failed:", validation.error.issues);
       return NextResponse.json(
-        { error: "Validation failed", details: validation.error.issues },
+        {
+          success: false,
+          error: "Validation failed",
+          details: validation.error.issues,
+        },
         { status: 400 }
       );
     }
@@ -45,7 +49,10 @@ export async function POST(request: NextRequest) {
     if (company.taxId && !validateNPWP(company.taxId)) {
       console.log("NPWP validation failed for:", company.taxId);
       return NextResponse.json(
-        { error: "Invalid NPWP format. Use format: XX.XXX.XXX.X-XXX.XXX" },
+        {
+          success: false,
+          error: "Invalid NPWP format. Use format: XX.XXX.XXX.X-XXX.XXX",
+        },
         { status: 400 }
       );
     }
@@ -56,7 +63,10 @@ export async function POST(request: NextRequest) {
     if (company.phone && !validatePhone(company.phone)) {
       console.log("Phone validation failed for:", company.phone);
       return NextResponse.json(
-        { error: "Invalid Indonesian phone number format" },
+        {
+          success: false,
+          error: "Invalid Indonesian phone number format",
+        },
         { status: 400 }
       );
     }
@@ -71,7 +81,10 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       console.log("Email already exists:", user.email);
       return NextResponse.json(
-        { error: "Email address is already registered" },
+        {
+          success: false,
+          error: "Email address is already registered",
+        },
         { status: 409 }
       );
     }
@@ -155,11 +168,25 @@ export async function POST(request: NextRequest) {
 
       console.log("Transaction completed successfully");
 
+      // Generate JWT token
+      const token = generateToken(
+        {
+          userId: result.user.id,
+          email: result.user.email,
+          companyId: result.company.id,
+        },
+        "7d"
+      );
+
       return NextResponse.json(
         {
+          success: true,
+          data: {
+            token,
+            user: result.user,
+            company: result.company,
+          },
           message: "Registration successful",
-          user: result.user,
-          company: result.company,
         },
         { status: 201 }
       );
@@ -170,21 +197,30 @@ export async function POST(request: NextRequest) {
         // Check for unique constraint violations
         if (error.message.includes("Unique constraint")) {
           return NextResponse.json(
-            { error: "Email or company information already exists" },
+            {
+              success: false,
+              error: "Email or company information already exists",
+            },
             { status: 409 }
           );
         }
       }
 
       return NextResponse.json(
-        { error: "Failed to create account. Please try again." },
+        {
+          success: false,
+          error: "Failed to create account. Please try again.",
+        },
         { status: 500 }
       );
     }
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        success: false,
+        error: "Internal server error",
+      },
       { status: 500 }
     );
   }
