@@ -86,12 +86,15 @@ export default function AssetList({
     }
   };
 
-  // Create columns with actions
-  const columns = createAssetColumns({
-    onView: onViewAsset,
-    onEdit: onEditAsset,
-    onDelete: handleDeleteAsset,
-  });
+  // Create columns with actions and translations
+  const columns = createAssetColumns(
+    {
+      onView: onViewAsset,
+      onEdit: onEditAsset,
+      onDelete: handleDeleteAsset,
+    },
+    t
+  );
 
   return (
     <div className="space-y-6">

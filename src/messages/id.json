@@ -135,6 +135,8 @@
     "deleteError": "Gagal menghapus aset. Silakan coba lagi.",
     "createSuccess": "Aset berhasil dibuat",
     "createError": "Gagal membuat aset",
+    "creating": "Membuat...",
+    "cancel": "Batal",
     "allStatus": "Semua Status",
     "allCategories": "Semua Kategori",
     "addNewAsset": "Tambah Aset Baru",
@@ -142,7 +144,32 @@
     "basicInformation": "Informasi Dasar",
     "technicalInformation": "Informasi Teknis",
     "financialInformation": "Informasi Keuangan",
+    "itAssetInformation": "Informasi Aset IT",
+    "environmentalInformation": "Informasi Lingkungan",
     "sustainabilityInformation": "Informasi Keberlanjutan",
+    "table": {
+      "asset": "Aset",
+      "category": "Kategori",
+      "location": "Lokasi",
+      "assignee": "Penanggung Jawab",
+      "status": "Status",
+      "condition": "Kondisi",
+      "purchaseCost": "Biaya Pembelian",
+      "purchaseDate": "Tanggal Pembelian",
+      "actions": "Aksi",
+      "serialNumber": "SN",
+      "openMenu": "Buka menu",
+      "view": "Lihat",
+      "edit": "Edit",
+      "delete": "Hapus"
+    },
+    "conditions": {
+      "excellent": "Sangat Baik",
+      "good": "Baik",
+      "fair": "Cukup",
+      "poor": "Buruk",
+      "damaged": "Rusak"
+    },
     "placeholders": {
       "enterAssetName": "Masukkan nama aset",
       "enterBrandName": "Masukkan nama merek",
@@ -188,6 +215,7 @@
       "assignedTo": "Ditugaskan Kepada",
       "warranty": "Garansi",
       "warrantyExpiresAt": "Garansi Berakhir",
+      "warrantyExpires": "Garansi Berakhir",
       "salvageValue": "Nilai Sisa",
       "depreciationMethod": "Metode Depresiasi",
       "usefulLifeYears": "Umur Ekonomis (Tahun)",
@@ -206,10 +234,24 @@
       "inactive": "Tidak Aktif",
       "maintenance": "Pemeliharaan",
       "disposed": "Dibuang",
+      "stolen": "Dicuri",
+      "lost": "Hilang",
       "available": "Tersedia",
       "inUse": "Sedang Digunakan",
       "retired": "Pensiun",
       "damaged": "Rusak"
+    },
+    "criticality": {
+      "critical": "Kritis",
+      "high": "Tinggi",
+      "medium": "Sedang",
+      "low": "Rendah"
+    },
+    "selectPlaceholders": {
+      "selectStatus": "Pilih status",
+      "selectCondition": "Pilih kondisi",
+      "selectCriticality": "Pilih kritikalitas",
+      "selectDepreciationMethod": "Pilih metode depresiasi"
     }
   },
   "companies": {

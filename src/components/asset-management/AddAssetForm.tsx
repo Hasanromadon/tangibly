@@ -227,18 +227,30 @@ export default function AddAssetForm({
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
+                            <SelectValue
+                              placeholder={t("selectPlaceholders.selectStatus")}
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                          <SelectItem value="maintenance">
-                            Maintenance
+                          <SelectItem value="active">
+                            {t("status.active")}
                           </SelectItem>
-                          <SelectItem value="disposed">Disposed</SelectItem>
-                          <SelectItem value="stolen">Stolen</SelectItem>
-                          <SelectItem value="lost">Lost</SelectItem>
+                          <SelectItem value="inactive">
+                            {t("status.inactive")}
+                          </SelectItem>
+                          <SelectItem value="maintenance">
+                            {t("status.maintenance")}
+                          </SelectItem>
+                          <SelectItem value="disposed">
+                            {t("status.disposed")}
+                          </SelectItem>
+                          <SelectItem value="stolen">
+                            {t("status.stolen")}
+                          </SelectItem>
+                          <SelectItem value="lost">
+                            {t("status.lost")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -251,22 +263,36 @@ export default function AddAssetForm({
                   name="condition"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Condition</FormLabel>
+                      <FormLabel>{t("fields.condition")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select condition" />
+                            <SelectValue
+                              placeholder={t(
+                                "selectPlaceholders.selectCondition"
+                              )}
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="excellent">Excellent</SelectItem>
-                          <SelectItem value="good">Good</SelectItem>
-                          <SelectItem value="fair">Fair</SelectItem>
-                          <SelectItem value="poor">Poor</SelectItem>
-                          <SelectItem value="damaged">Damaged</SelectItem>
+                          <SelectItem value="excellent">
+                            {t("conditions.excellent")}
+                          </SelectItem>
+                          <SelectItem value="good">
+                            {t("conditions.good")}
+                          </SelectItem>
+                          <SelectItem value="fair">
+                            {t("conditions.fair")}
+                          </SelectItem>
+                          <SelectItem value="poor">
+                            {t("conditions.poor")}
+                          </SelectItem>
+                          <SelectItem value="damaged">
+                            {t("conditions.damaged")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -279,21 +305,33 @@ export default function AddAssetForm({
                   name="criticality"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Criticality</FormLabel>
+                      <FormLabel>{t("fields.criticality")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select criticality" />
+                            <SelectValue
+                              placeholder={t(
+                                "selectPlaceholders.selectCriticality"
+                              )}
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="critical">Critical</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="critical">
+                            {t("criticality.critical")}
+                          </SelectItem>
+                          <SelectItem value="high">
+                            {t("criticality.high")}
+                          </SelectItem>
+                          <SelectItem value="medium">
+                            {t("criticality.medium")}
+                          </SelectItem>
+                          <SelectItem value="low">
+                            {t("criticality.low")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -308,10 +346,10 @@ export default function AddAssetForm({
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t("fields.description")}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Enter asset description"
+                          placeholder={t("placeholders.enterDescription")}
                           className="mt-2"
                           {...field}
                         />
@@ -326,7 +364,7 @@ export default function AddAssetForm({
             {/* Financial Information */}
             <Card className="p-4">
               <h3 className="mb-4 text-lg font-semibold">
-                Financial Information
+                {t("financialInformation")}
               </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
@@ -334,11 +372,11 @@ export default function AddAssetForm({
                   name="purchaseCost"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Purchase Cost (IDR)</FormLabel>
+                      <FormLabel>{t("fields.purchaseCost")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="0"
+                          placeholder={t("placeholders.zero")}
                           step="0.01"
                           {...field}
                         />
@@ -353,7 +391,7 @@ export default function AddAssetForm({
                   name="purchaseDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Purchase Date</FormLabel>
+                      <FormLabel>{t("fields.purchaseDate")}</FormLabel>
                       <FormControl>
                         <Input type="datetime-local" {...field} />
                       </FormControl>
@@ -367,9 +405,12 @@ export default function AddAssetForm({
                   name="purchaseOrderNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Purchase Order Number</FormLabel>
+                      <FormLabel>{t("fields.purchaseOrderNumber")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter PO number" {...field} />
+                        <Input
+                          placeholder={t("placeholders.enterPONumber")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -381,9 +422,12 @@ export default function AddAssetForm({
                   name="invoiceNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Invoice Number</FormLabel>
+                      <FormLabel>{t("fields.invoiceNumber")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter invoice number" {...field} />
+                        <Input
+                          placeholder={t("placeholders.enterInvoiceNumber")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -395,7 +439,7 @@ export default function AddAssetForm({
                   name="warrantyExpiresAt"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Warranty Expires</FormLabel>
+                      <FormLabel>{t("fields.warrantyExpires")}</FormLabel>
                       <FormControl>
                         <Input type="datetime-local" {...field} />
                       </FormControl>
@@ -409,11 +453,11 @@ export default function AddAssetForm({
                   name="salvageValue"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Salvage Value (IDR)</FormLabel>
+                      <FormLabel>{t("fields.salvageValue")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="0"
+                          placeholder={t("placeholders.zero")}
                           step="0.01"
                           {...field}
                         />
@@ -434,7 +478,7 @@ export default function AddAssetForm({
                   name="depreciationMethod"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Depreciation Method</FormLabel>
+                      <FormLabel>{t("fields.depreciationMethod")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -466,7 +510,7 @@ export default function AddAssetForm({
                   name="usefulLifeYears"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Useful Life (Years)</FormLabel>
+                      <FormLabel>{t("fields.usefulLifeYears")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -485,7 +529,7 @@ export default function AddAssetForm({
             {/* IT Asset Information */}
             <Card className="p-4">
               <h3 className="mb-4 text-lg font-semibold">
-                IT Asset Information
+                {t("itAssetInformation")}
               </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
@@ -493,7 +537,7 @@ export default function AddAssetForm({
                   name="ipAddress"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>IP Address</FormLabel>
+                      <FormLabel>{t("fields.ipAddress")}</FormLabel>
                       <FormControl>
                         <Input placeholder="192.168.1.100" {...field} />
                       </FormControl>
@@ -507,7 +551,7 @@ export default function AddAssetForm({
                   name="macAddress"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>MAC Address</FormLabel>
+                      <FormLabel>{t("fields.macAddress")}</FormLabel>
                       <FormControl>
                         <Input placeholder="00:00:00:00:00:00" {...field} />
                       </FormControl>
@@ -521,7 +565,7 @@ export default function AddAssetForm({
                   name="operatingSystem"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Operating System</FormLabel>
+                      <FormLabel>{t("fields.operatingSystem")}</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Windows 11, Ubuntu 22.04, etc."
@@ -538,7 +582,9 @@ export default function AddAssetForm({
                   name="securityClassification"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Security Classification</FormLabel>
+                      <FormLabel>
+                        {t("fields.securityClassification")}
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -567,7 +613,7 @@ export default function AddAssetForm({
             {/* Environmental Information */}
             <Card className="p-4">
               <h3 className="mb-4 text-lg font-semibold">
-                Environmental Information
+                {t("environmentalInformation")}
               </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
@@ -652,16 +698,16 @@ export default function AddAssetForm({
                 onClick={handleClose}
                 disabled={createAssetMutation.isPending}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button type="submit" disabled={createAssetMutation.isPending}>
                 {createAssetMutation.isPending ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />
-                    Creating...
+                    {t("creating")}
                   </>
                 ) : (
-                  "Create Asset"
+                  t("createAsset")
                 )}
               </Button>
             </div>

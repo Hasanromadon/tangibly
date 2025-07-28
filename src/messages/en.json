@@ -137,6 +137,8 @@
     "deleteError": "Failed to delete asset. Please try again.",
     "createSuccess": "Asset created successfully",
     "createError": "Failed to create asset",
+    "creating": "Creating...",
+    "cancel": "Cancel",
     "allStatus": "All Status",
     "allCategories": "All Categories",
     "addNewAsset": "Add New Asset",
@@ -144,7 +146,32 @@
     "basicInformation": "Basic Information",
     "technicalInformation": "Technical Information",
     "financialInformation": "Financial Information",
+    "itAssetInformation": "IT Asset Information",
+    "environmentalInformation": "Environmental Information",
     "sustainabilityInformation": "Sustainability Information",
+    "table": {
+      "asset": "Asset",
+      "category": "Category",
+      "location": "Location",
+      "assignee": "Assignee",
+      "status": "Status",
+      "condition": "Condition",
+      "purchaseCost": "Purchase Cost",
+      "purchaseDate": "Purchase Date",
+      "actions": "Actions",
+      "serialNumber": "SN",
+      "openMenu": "Open menu",
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "conditions": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "damaged": "Damaged"
+    },
     "placeholders": {
       "enterAssetName": "Enter asset name",
       "enterBrandName": "Enter brand name",
@@ -190,9 +217,10 @@
       "assignedTo": "Assigned To",
       "warranty": "Warranty",
       "warrantyExpiresAt": "Warranty Expires At",
+      "warrantyExpires": "Warranty Expires",
       "salvageValue": "Salvage Value",
       "depreciationMethod": "Depreciation Method",
-      "usefulLifeYears": "Useful Life Years",
+      "usefulLifeYears": "Useful Life (Years)",
       "maintenanceSchedule": "Maintenance Schedule",
       "ipAddress": "IP Address",
       "macAddress": "MAC Address",
@@ -208,10 +236,24 @@
       "inactive": "Inactive",
       "maintenance": "Maintenance",
       "disposed": "Disposed",
+      "stolen": "Stolen",
+      "lost": "Lost",
       "available": "Available",
       "inUse": "In Use",
       "retired": "Retired",
       "damaged": "Damaged"
+    },
+    "criticality": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "selectPlaceholders": {
+      "selectStatus": "Select status",
+      "selectCondition": "Select condition",
+      "selectCriticality": "Select criticality",
+      "selectDepreciationMethod": "Select depreciation method"
     }
   },
   "companies": {

@@ -21,6 +21,7 @@ import {
   Calendar,
   DollarSign,
 } from "lucide-react";
+import { useAssetTranslations } from "@/hooks/useTranslations";
 import { Asset } from "@/services/asset-api";
 
 export interface AssetTableActions {
@@ -61,6 +62,15 @@ const getConditionBadgeVariant = (condition: string) => {
   }
 };
 
+// Status and condition translation helper
+const translateStatus = (status: string, t: any) => {
+  return t(`status.${status}`) || status;
+};
+
+const translateCondition = (condition: string, t: any) => {
+  return t(`conditions.${condition}`) || condition;
+};
+
 const formatCurrency = (amount: number | undefined) => {
   if (!amount) return "-";
   return new Intl.NumberFormat("id-ID", {
@@ -75,7 +85,8 @@ const formatDate = (date: Date | string | undefined) => {
 };
 
 export function createAssetColumns(
-  actions: AssetTableActions
+  actions: AssetTableActions,
+  t: ReturnType<typeof useAssetTranslations>
 ): ColumnDef<Asset>[] {
   return [
     {
@@ -87,7 +98,7 @@ export function createAssetColumns(
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold hover:bg-transparent"
           >
-            Asset
+            {t("table.asset")}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -100,7 +111,7 @@ export function createAssetColumns(
             <div className="text-sm text-gray-500">{asset.assetNumber}</div>
             {asset.serialNumber && (
               <div className="text-xs text-gray-400">
-                SN: {asset.serialNumber}
+                {t("table.serialNumber")}: {asset.serialNumber}
               </div>
             )}
           </div>
@@ -116,7 +127,7 @@ export function createAssetColumns(
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold hover:bg-transparent"
           >
-            Category
+            {t("table.category")}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -135,7 +146,7 @@ export function createAssetColumns(
     },
     {
       accessorKey: "location",
-      header: "Location",
+      header: t("table.location"),
       cell: ({ row }) => {
         const location = row.original.location;
         return location ? (
@@ -150,7 +161,7 @@ export function createAssetColumns(
     },
     {
       accessorKey: "assignee",
-      header: "Assignee",
+      header: t("table.assignee"),
       cell: ({ row }) => {
         const assignee = row.original.assignee;
         return assignee ? (
@@ -172,15 +183,16 @@ export function createAssetColumns(
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold hover:bg-transparent"
           >
-            Status
+            {t("table.status")}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
       cell: ({ row }) => {
+        const status = row.getValue("status") as string;
         return (
-          <Badge variant={getStatusBadgeVariant(row.getValue("status"))}>
-            {row.getValue("status")}
+          <Badge variant={getStatusBadgeVariant(status)}>
+            {translateStatus(status, t)}
           </Badge>
         );
       },
@@ -194,15 +206,16 @@ export function createAssetColumns(
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold hover:bg-transparent"
           >
-            Condition
+            {t("table.condition")}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
       cell: ({ row }) => {
+        const condition = row.getValue("condition") as string;
         return (
-          <Badge variant={getConditionBadgeVariant(row.getValue("condition"))}>
-            {row.getValue("condition")}
+          <Badge variant={getConditionBadgeVariant(condition)}>
+            {translateCondition(condition, t)}
           </Badge>
         );
       },
@@ -216,7 +229,7 @@ export function createAssetColumns(
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold hover:bg-transparent"
           >
-            Purchase Cost
+            {t("table.purchaseCost")}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -239,7 +252,7 @@ export function createAssetColumns(
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold hover:bg-transparent"
           >
-            Purchase Date
+            {t("table.purchaseDate")}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -255,7 +268,7 @@ export function createAssetColumns(
     },
     {
       id: "actions",
-      header: "Actions",
+      header: t("table.actions"),
       cell: ({ row }) => {
         const asset = row.original;
 
@@ -263,25 +276,25 @@ export function createAssetColumns(
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{t("table.openMenu")}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => actions.onView(asset)}>
                 <Eye className="mr-2 h-4 w-4" />
-                View
+                {t("table.view")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => actions.onEdit(asset)}>
                 <Edit className="mr-2 h-4 w-4" />
-                Edit
+                {t("table.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => actions.onDelete(asset.id)}
                 className="text-red-600 focus:text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t("table.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
