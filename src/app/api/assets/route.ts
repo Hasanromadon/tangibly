@@ -1,6 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/database/prisma";
 import { z } from "zod";
+import {
+  middleware,
+  type AuthenticatedUser,
+  ROLES,
+} from "@/lib/auth-middleware";
+import {
+  successResponse,
+  errorResponse,
+  validationErrorResponse,
+} from "@/lib/api-response";
 
 // Validation schemas
 const createAssetSchema = z.object({
@@ -103,41 +113,41 @@ function calculateBookValue(
 }
 
 // GET /api/assets - List assets with filtering and pagination
-export async function GET(request: NextRequest) {
+// GET /api/assets - List assets (company-scoped access)
+async function getAssetsHandler(request: NextRequest) {
   try {
+    const user = (request as unknown as { user: AuthenticatedUser }).user;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
-    const categoryId = searchParams.get("categoryId");
-    const locationId = searchParams.get("locationId");
-    const status = searchParams.get("status");
-    const condition = searchParams.get("condition");
-    const assignedTo = searchParams.get("assignedTo");
+    const categoryId = searchParams.get("categoryId") || "";
+    const status = searchParams.get("status") || "";
     const skip = (page - 1) * limit;
 
-    // Build where clause
-    const where: Record<string, unknown> = {};
+    const baseWhere: { companyId?: string } = {};
 
-    // For now, use a demo company ID - will implement proper auth later
-    where.companyId = "demo-company-id";
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { assetNumber: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { brand: { contains: search, mode: "insensitive" } },
-        { model: { contains: search, mode: "insensitive" } },
-        { serialNumber: { contains: search, mode: "insensitive" } },
-      ];
+    // Users can only see assets from their company (except super admin)
+    if (user.role !== ROLES.SUPER_ADMIN && user.companyId) {
+      baseWhere.companyId = user.companyId;
     }
 
-    if (categoryId) where.categoryId = categoryId;
-    if (locationId) where.locationId = locationId;
-    if (status) where.status = status;
-    if (condition) where.condition = condition;
-    if (assignedTo) where.assignedTo = assignedTo;
+    const searchConditions = [];
+    if (search) {
+      searchConditions.push(
+        { name: { contains: search, mode: "insensitive" as const } },
+        { description: { contains: search, mode: "insensitive" as const } },
+        { serialNumber: { contains: search, mode: "insensitive" as const } },
+        { barcode: { contains: search, mode: "insensitive" as const } }
+      );
+    }
+
+    const where = {
+      ...baseWhere,
+      ...(categoryId && { categoryId }),
+      ...(status && { status }),
+      ...(searchConditions.length > 0 && { OR: searchConditions }),
+    };
 
     const [assets, total] = await Promise.all([
       prisma.asset.findMany({
@@ -146,65 +156,44 @@ export async function GET(request: NextRequest) {
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
-          category: {
-            select: {
-              id: true,
-              name: true,
-              code: true,
-              icon: true,
-              color: true,
-            },
-          },
-          location: {
-            select: { id: true, name: true, code: true },
-          },
-          vendor: {
-            select: { id: true, name: true, code: true },
-          },
-          assignee: {
-            select: { id: true, firstName: true, lastName: true, email: true },
-          },
-          creator: {
-            select: { id: true, firstName: true, lastName: true },
-          },
-          _count: {
-            select: {
-              workOrders: true,
-              movements: true,
-            },
-          },
+          category: { select: { id: true, name: true } },
+          location: { select: { id: true, name: true } },
+          assignee: { select: { id: true, firstName: true, lastName: true } },
+          company: { select: { id: true, name: true } },
         },
       }),
       prisma.asset.count({ where }),
     ]);
 
-    return NextResponse.json({
-      success: true,
-      data: assets,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
+    return successResponse(
+      {
+        assets,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
       },
-    });
+      "Assets retrieved successfully"
+    );
   } catch (error) {
     console.error("Error fetching assets:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch assets" },
-      { status: 500 }
-    );
+    return errorResponse("Failed to fetch assets");
   }
 }
 
+export async function GET(request: NextRequest) {
+  return middleware.asset.companyScoped(getAssetsHandler)(request, {});
+}
+
 // POST /api/assets - Create new asset
-export async function POST(request: NextRequest) {
+// POST /api/assets - Create new asset
+async function createAssetHandler(request: NextRequest) {
   try {
+    const user = (request as unknown as { user: AuthenticatedUser }).user;
     const body = await request.json();
     const validatedData = createAssetSchema.parse(body);
-
-    // For demo purposes, use a demo company ID
-    const companyId = "demo-company-id";
 
     // Get category for asset number generation
     let categoryCode = "AST";
@@ -219,7 +208,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate asset number
-    const assetNumber = await generateAssetNumber(companyId, categoryCode);
+    const assetNumber = await generateAssetNumber(
+      user.companyId!,
+      categoryCode
+    );
 
     // Calculate book value if purchase cost is provided
     let bookValue: number | undefined;
@@ -242,7 +234,7 @@ export async function POST(request: NextRequest) {
     const asset = await prisma.asset.create({
       data: {
         ...validatedData,
-        companyId,
+        companyId: user.companyId!,
         assetNumber,
         qrCode,
         bookValue,
@@ -252,9 +244,8 @@ export async function POST(request: NextRequest) {
         warrantyExpiresAt: validatedData.warrantyExpiresAt
           ? new Date(validatedData.warrantyExpiresAt)
           : undefined,
-        customFields: JSON.parse(JSON.stringify(validatedData.customFields)), // Convert to proper JsonValue
-        // For demo, set a demo user as creator
-        createdBy: "demo-user-id",
+        customFields: JSON.parse(JSON.stringify(validatedData.customFields)),
+        createdBy: user.id,
       },
       include: {
         category: {
@@ -272,23 +263,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: asset,
-      message: "Asset created successfully",
-    });
+    return successResponse(asset, "Asset created successfully", 201);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Validation failed", details: error.issues },
-        { status: 400 }
-      );
+      return validationErrorResponse(error);
     }
-
     console.error("Error creating asset:", error);
-    return NextResponse.json(
-      { error: "Failed to create asset" },
-      { status: 500 }
-    );
+    return errorResponse("Failed to create asset");
   }
+}
+
+export async function POST(request: NextRequest) {
+  return middleware.asset.write(createAssetHandler)(request, {});
 }

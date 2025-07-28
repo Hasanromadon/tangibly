@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { securityLogger } from "@/lib/security-logger";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { requireAdmin } from "@/middleware/auth";
+import { middleware } from "@/lib/auth-middleware";
 
 async function getSecurityStats(request: NextRequest) {
   try {
@@ -49,4 +49,4 @@ async function getSecurityStats(request: NextRequest) {
   }
 }
 
-export const GET = requireAdmin(getSecurityStats);
+export const GET = middleware.system.monitoring(getSecurityStats);

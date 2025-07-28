@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { requireAuth, AuthenticatedUser } from "@/middleware/auth";
+import { middleware, type AuthenticatedUser } from "@/lib/auth-middleware";
 import { successResponse } from "@/lib/api-response";
 
 async function getMeHandler(request: NextRequest) {
@@ -8,4 +8,4 @@ async function getMeHandler(request: NextRequest) {
   return successResponse(user, "User retrieved successfully");
 }
 
-export const GET = requireAuth(getMeHandler);
+export const GET = middleware.auth(getMeHandler);

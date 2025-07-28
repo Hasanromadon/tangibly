@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/database/prisma";
 import { verifyToken, generateToken, validatePhone } from "@/lib/auth";
+import { middleware, type AuthenticatedUser } from "@/lib/auth-middleware";
+import {
+  successResponse,
+  errorResponse,
+  validationErrorResponse,
+} from "@/lib/api-response";
 
 const inviteUserSchema = z.object({
   email: z.string().email("Invalid email address").toLowerCase(),

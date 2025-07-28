@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/database/prisma";
-import { requireAdmin } from "@/middleware/auth";
+import { middleware } from "@/lib/auth-middleware";
 import {
   successResponse,
   errorResponse,
@@ -94,5 +94,5 @@ async function createUserHandler(request: NextRequest) {
   }
 }
 
-export const GET = requireAdmin(getUsersHandler);
-export const POST = requireAdmin(createUserHandler);
+export const GET = middleware.user.manageAll(getUsersHandler);
+export const POST = middleware.user.manageAll(createUserHandler);

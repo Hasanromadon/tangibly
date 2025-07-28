@@ -1,27 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/database/prisma";
 import { verifyPassword, generateToken } from "@/lib/auth";
+import {
+  successResponse,
+  errorResponse,
+  validationErrorResponse,
+} from "@/lib/api-response";
 
+// Validation schema
 const loginSchema = z.object({
   email: z.string().email("Invalid email address").toLowerCase(),
   password: z.string().min(1, "Password is required"),
   remember: z.boolean().optional(),
 });
 
-export async function POST(request: NextRequest) {
+// POST /api/auth/login - Authenticate user and return JWT token
+async function loginHandler(request: NextRequest) {
   try {
+    // Parse and validate input
     const body = await request.json();
-    const validation = loginSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: validation.error.issues },
-        { status: 400 }
-      );
-    }
-
-    const { email, password, remember } = validation.data;
+    const { email, password, remember } = loginSchema.parse(body);
 
     // Find user with company information
     const user = await prisma.user.findUnique({
@@ -42,50 +41,36 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Validate user existence
     if (!user) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
+      return errorResponse("Invalid credentials", 401);
     }
 
-    // Check if user account is active
+    // Validate user account status
     if (!user.isActive) {
-      return NextResponse.json(
-        { error: "Account is deactivated" },
-        { status: 401 }
-      );
+      return errorResponse("Account is deactivated", 401);
     }
 
-    // Check if company is active
+    // Validate company status
     if (!user.company.isActive) {
-      return NextResponse.json(
-        { error: "Company account is suspended" },
-        { status: 401 }
-      );
+      return errorResponse("Company account is suspended", 401);
     }
 
-    // Check subscription status
+    // Validate subscription status
     if (
       user.company.subscriptionExpiresAt &&
       new Date() > user.company.subscriptionExpiresAt
     ) {
-      return NextResponse.json(
-        { error: "Company subscription has expired" },
-        { status: 401 }
-      );
+      return errorResponse("Company subscription has expired", 401);
     }
 
     // Verify password
     const isValidPassword = await verifyPassword(password, user.passwordHash);
     if (!isValidPassword) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
+      return errorResponse("Invalid credentials", 401);
     }
 
-    // Update last login
+    // Update last login timestamp
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
@@ -104,7 +89,7 @@ export async function POST(request: NextRequest) {
       expiresIn
     );
 
-    // Return user data and token
+    // Prepare response data
     const userData = {
       id: user.id,
       firstName: user.firstName,
@@ -140,11 +125,8 @@ export async function POST(request: NextRequest) {
       company: companyData,
     };
 
-    const response = NextResponse.json({
-      success: true,
-      message: "Login successful",
-      data: authResponse,
-    });
+    // Create success response
+    const response = successResponse(authResponse, "Login successful");
 
     // Set secure cookie if remember me is enabled
     if (remember) {
@@ -156,10 +138,18 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
+    // Handle validation errors
+    if (error instanceof z.ZodError) {
+      return validationErrorResponse(error);
+    }
+
+    // Handle generic errors
     console.error("Login error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return errorResponse("Internal server error");
   }
+}
+
+// Route export
+export async function POST(request: NextRequest) {
+  return loginHandler(request);
 }
