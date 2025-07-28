@@ -215,7 +215,8 @@ function AssetManagement() {
 
   const handleViewAsset = (asset: Asset) => {
     console.log("View asset:", asset);
-    // TODO: Implement view functionality
+    // View functionality is now handled by the AssetList component
+    // The ViewAssetDialog will be shown automatically
   };
 
   const handleAssetSuccess = () => {

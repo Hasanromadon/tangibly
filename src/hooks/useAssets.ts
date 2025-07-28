@@ -12,9 +12,10 @@ import {
   useBaseList,
   QueryKeys,
 } from "@/hooks/base-hooks";
-import { QueryOptions } from "@/types";
+import { QueryOptions, ApiError } from "@/types";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 
 // Get paginated assets list
 export function useAssets(options?: QueryOptions) {
@@ -118,16 +119,44 @@ export function useUpdateAsset() {
 }
 
 // Delete asset mutation
-export function useDeleteAsset() {
-  return useBaseMutation<void, string>(
-    async id => {
-      const response = await assetApiService.deleteAsset(id);
-      return validateApiResponse(response);
+export function useDeleteAsset(options?: {
+  onSuccess?: () => void;
+  onError?: (error: ApiError) => void;
+}) {
+  let isDeleting = false;
+
+  return useBaseMutation(
+    async (id: string) => {
+      if (isDeleting) {
+        throw new Error("Delete operation already in progress");
+      }
+
+      isDeleting = true;
+
+      try {
+        const response = await assetApiService.deleteAsset(id);
+        const result = validateApiResponse(response);
+
+        return result;
+      } catch (error) {
+        console.log("[useDeleteAsset] API call failed:", error);
+        throw error;
+      } finally {
+        setTimeout(() => {
+          isDeleting = false;
+          console.log("[useDeleteAsset] Reset isDeleting flag");
+        }, 100);
+      }
     },
     {
-      successMessage: "Asset deleted successfully!",
-      errorMessage: "Failed to delete asset. Please try again.",
-      invalidateQueries: [[...QueryKeys.assets.lists()]],
+      successMessage: "Asset deleted successfully",
+      invalidateQueries: [["assets"]],
+      onSuccess: () => {
+        options?.onSuccess?.();
+      },
+      onError: error => {
+        options?.onError?.(error);
+      },
     }
   );
 }

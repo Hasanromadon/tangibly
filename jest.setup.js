@@ -39,6 +39,22 @@ jest.mock("next/navigation", () => ({
   },
 }));
 
+// Mock next-intl
+jest.mock("next-intl", () => ({
+  useTranslations: () => key => key,
+  useLocale: () => "en",
+  useMessages: () => ({}),
+  useFormatter: () => ({
+    dateTime: date => new Date(date).toLocaleDateString(),
+    number: (number, options) => {
+      if (options?.style === "currency") {
+        return `$${number.toLocaleString()}`;
+      }
+      return number.toLocaleString();
+    },
+  }),
+}));
+
 // Mock next/image
 jest.mock("next/image", () => {
   const MockedImage = ({ src, alt, ...props }) => (

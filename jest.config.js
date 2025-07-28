@@ -17,6 +17,9 @@ const config = {
   moduleNameMapping: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
+  transformIgnorePatterns: [
+    "node_modules/(?!(next-intl|@formatjs|@tanstack|sonner)/)",
+  ],
   testMatch: [
     "<rootDir>/src/**/__tests__/**/*.(ts|tsx|js)",
     "<rootDir>/src/**/*.(test|spec).(ts|tsx|js)",

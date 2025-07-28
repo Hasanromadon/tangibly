@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,14 +13,13 @@ import {
 } from "@/components/ui/select";
 import { DataTable } from "@/components/ui/data-table";
 import { createAssetColumns } from "./asset-table-columns";
+import ViewAssetDialog from "./ViewAssetDialog";
+import DeleteAssetDialog from "./DeleteAssetDialog";
 import { Search, Plus, Download } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { useAssets, useDeleteAsset } from "@/hooks/useAssets";
-import {
-  useAssetTranslations,
-  useCommonTranslations,
-} from "@/hooks/useTranslations";
+import { useAssetTranslations } from "@/hooks/useTranslations";
 import { Asset } from "@/services/asset-api";
+import { ApiError } from "@/types";
 
 interface AssetListProps {
   onAddAsset: () => void;
@@ -37,11 +36,12 @@ export default function AssetList({
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const { toast } = useToast();
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   // Initialize translations
   const t = useAssetTranslations();
-  const commonT = useCommonTranslations();
 
   // Build query options for React Query in the correct format
   const queryOptions = {
@@ -58,40 +58,88 @@ export default function AssetList({
 
   // Use React Query hooks
   const { data, isLoading: loading } = useAssets(queryOptions);
-  const deleteAssetMutation = useDeleteAsset();
+
+  // Memoize delete callbacks to prevent infinite re-renders
+  const handleDeleteSuccess = useCallback(() => {
+    console.log(
+      "AssetList deleteAssetMutation onSuccess called - closing dialog"
+    );
+    // Close dialog and reset state when deletion succeeds
+    setShowDeleteDialog(false);
+    setSelectedAsset(null);
+  }, []);
+
+  const handleDeleteError = useCallback((error: ApiError) => {
+    console.error("Delete asset error:", error);
+    // Keep dialog open on error so user can try again
+  }, []);
+
+  const deleteAssetMutation = useDeleteAsset({
+    onSuccess: handleDeleteSuccess,
+    onError: handleDeleteError,
+  });
 
   // Extract data from React Query response
   const assets = data?.data || [];
   const totalPages = data?.pagination?.totalPages || 1;
   const totalCount = data?.pagination?.total || 0;
 
-  const handleDeleteAsset = async (assetId: string) => {
-    if (!confirm(t("confirmDelete"))) {
+  // Handle view asset
+  const handleViewAsset = (asset: Asset) => {
+    setSelectedAsset(asset);
+    setShowViewDialog(true);
+    onViewAsset(asset); // Call the parent handler as well
+  };
+
+  // Enhanced delete with confirmation dialog
+  const handleDeleteAsset = (asset: Asset) => {
+    setSelectedAsset(asset);
+    setShowDeleteDialog(true);
+  };
+
+  // Handle delete asset by ID (for backward compatibility)
+  const handleDeleteAssetById = (assetId: string) => {
+    const asset = assets.find(a => a.id === assetId);
+    if (asset) {
+      handleDeleteAsset(asset);
+    }
+  };
+
+  // Confirm delete action
+  const handleConfirmDelete = () => {
+    console.log("handleConfirmDelete called", {
+      selectedAsset: selectedAsset?.id,
+      isPending: deleteAssetMutation.isPending,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (!selectedAsset || deleteAssetMutation.isPending) {
+      console.log("handleConfirmDelete early return");
       return;
     }
 
-    try {
-      await deleteAssetMutation.mutateAsync(assetId);
-      toast({
-        title: commonT("success"),
-        description: t("deleteSuccess"),
-      });
-    } catch (error) {
-      console.error("Error deleting asset:", error);
-      toast({
-        title: commonT("error"),
-        description: t("deleteError"),
-        variant: "destructive",
-      });
-    }
+    console.log("Calling deleteAssetMutation.mutate with:", selectedAsset.id);
+    // Just call the mutation, let the hook handle success/error
+    deleteAssetMutation.mutate(selectedAsset.id);
+  };
+
+  // Close dialogs
+  const handleCloseViewDialog = () => {
+    setShowViewDialog(false);
+    setSelectedAsset(null);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setShowDeleteDialog(false);
+    setSelectedAsset(null);
   };
 
   // Create columns with actions and translations
   const columns = createAssetColumns(
     {
-      onView: onViewAsset,
+      onView: handleViewAsset,
       onEdit: onEditAsset,
-      onDelete: handleDeleteAsset,
+      onDelete: handleDeleteAssetById,
     },
     t
   );
@@ -184,6 +232,22 @@ export default function AssetList({
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
+      />
+
+      {/* View Asset Dialog */}
+      <ViewAssetDialog
+        open={showViewDialog}
+        onClose={handleCloseViewDialog}
+        asset={selectedAsset}
+      />
+
+      {/* Delete Asset Dialog */}
+      <DeleteAssetDialog
+        open={showDeleteDialog}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleConfirmDelete}
+        asset={selectedAsset}
+        isDeleting={deleteAssetMutation.isPending}
       />
     </div>
   );

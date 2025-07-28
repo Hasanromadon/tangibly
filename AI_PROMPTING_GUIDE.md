@@ -90,13 +90,13 @@ REQUIREMENTS:
 - Follow Tangibly architecture patterns from ARCHITECTURE.md
 - Implement both Frontend (React components) and Backend (API routes)
 - Use TypeScript with strict typing
-- Add Zod validation schemas
+- Add React Hook Form, Zod validation schemas
 - Include comprehensive tests (unit, component, API)
 - Follow SOLID principles
 - Add proper error handling and loading states
 
 CONTEXT:
-- This is for [USER_ROLE] functionality in the asset management system
+- This is for admin functionality in the asset management system
 - Integrate with existing auth system and role-based access
 - Follow established patterns in similar features
 

@@ -247,7 +247,9 @@ export function validateApiResponse<T>(response: ApiResponse<T>): T {
     throw error;
   }
 
-  if (!response.data) {
+  // For successful responses, data can be null (e.g., DELETE operations)
+  // Only throw if data is required but missing (when T is not nullable)
+  if (response.data === undefined) {
     throw new Error("Invalid API response: missing data");
   }
 

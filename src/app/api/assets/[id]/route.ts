@@ -77,16 +77,47 @@ async function deleteAssetHandler(
   try {
     // Authenticate user
     const { user, error } = await authenticate(request);
-    if (error) return error;
-    if (!user) return unauthorizedResponse();
+    if (error) {
+      console.log("Delete Asset Auth Error:", error);
+      return error;
+    }
+    if (!user) {
+      console.log("Delete Asset: No user found");
+      return unauthorizedResponse();
+    }
+
+    console.log("Delete Asset Auth Debug:", {
+      userId: user.id,
+      userEmail: user.email,
+      userRole: user.role,
+      userCompanyId: user.companyId,
+    });
 
     // Check permissions
     const normalizedRole = normalizeRole(user.role);
     if (!hasPermission(normalizedRole, PERMISSIONS.ASSET_DELETE)) {
+      console.log("Delete Asset: Insufficient permissions", {
+        role: normalizedRole,
+        required: PERMISSIONS.ASSET_DELETE,
+      });
       return unauthorizedResponse("Insufficient permissions to delete assets");
     }
 
     const { id } = params;
+
+    // First, let's check if the asset exists at all (for debugging)
+    const assetExists = await prisma.asset.findUnique({
+      where: { id },
+      select: { id: true, companyId: true, name: true },
+    });
+
+    console.log("Asset existence check:", {
+      assetId: id,
+      exists: !!assetExists,
+      assetCompanyId: assetExists?.companyId,
+      assetName: assetExists?.name,
+    });
+
     const baseWhere: { id: string; companyId?: string } = { id };
 
     // Users can only delete assets from their company (except super admin)
@@ -95,12 +126,25 @@ async function deleteAssetHandler(
       baseWhere.companyId = user.companyId;
     }
 
-    // Check if asset exists
+    // Check if asset exists with company scope
     const asset = await prisma.asset.findFirst({
       where: baseWhere,
     });
 
+    console.log("Delete Asset Debug:", {
+      assetId: id,
+      userCompanyId: user.companyId,
+      isSuperAdmin,
+      baseWhere,
+      assetFound: !!asset,
+      assetCompanyId: asset?.companyId,
+    });
+
     if (!asset) {
+      const errorMessage = assetExists
+        ? "Asset not found - you don't have permission to delete this asset (different company)"
+        : "Asset not found";
+      console.log("Asset not found for deletion:", errorMessage);
       return errorResponse("Asset not found", 404);
     }
 
@@ -109,9 +153,14 @@ async function deleteAssetHandler(
       where: { id },
     });
 
+    console.log("Asset deleted successfully:", id);
     return successResponse(null, "Asset deleted successfully");
   } catch (error) {
     console.error("Error deleting asset:", error);
+    if (error instanceof PrismaClientKnownRequestError) {
+      console.error("Prisma error code:", error.code);
+      console.error("Prisma error meta:", error.meta);
+    }
     return errorResponse("Failed to delete asset");
   }
 }

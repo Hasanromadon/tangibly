@@ -38,7 +38,7 @@ export class QueryKeys {
     all: ["users"] as const,
     lists: () => [...QueryKeys.users.all, "list"] as const,
     list: (options?: QueryOptions) =>
-      [...QueryKeys.users.lists(), options] as const,
+      [...QueryKeys.users.lists(), JSON.stringify(options ?? {})] as const,
     details: () => [...QueryKeys.users.all, "detail"] as const,
     detail: (id: string) => [...QueryKeys.users.details(), id] as const,
   };
@@ -47,7 +47,7 @@ export class QueryKeys {
     all: ["companies"] as const,
     lists: () => [...QueryKeys.companies.all, "list"] as const,
     list: (options?: QueryOptions) =>
-      [...QueryKeys.companies.lists(), options] as const,
+      [...QueryKeys.companies.lists(), JSON.stringify(options ?? {})] as const,
     details: () => [...QueryKeys.companies.all, "detail"] as const,
     detail: (id: string) => [...QueryKeys.companies.details(), id] as const,
   };
@@ -56,7 +56,7 @@ export class QueryKeys {
     all: ["assets"] as const,
     lists: () => [...QueryKeys.assets.all, "list"] as const,
     list: (options?: QueryOptions) =>
-      [...QueryKeys.assets.lists(), options] as const,
+      [...QueryKeys.assets.lists(), JSON.stringify(options ?? {})] as const,
     details: () => [...QueryKeys.assets.all, "detail"] as const,
     detail: (id: string) => [...QueryKeys.assets.details(), id] as const,
     categories: () => [...QueryKeys.assets.all, "categories"] as const,
@@ -67,7 +67,10 @@ export class QueryKeys {
     all: ["invitations"] as const,
     lists: () => [...QueryKeys.invitations.all, "list"] as const,
     list: (options?: QueryOptions) =>
-      [...QueryKeys.invitations.lists(), options] as const,
+      [
+        ...QueryKeys.invitations.lists(),
+        JSON.stringify(options ?? {}),
+      ] as const,
     verify: (token: string) =>
       [...QueryKeys.invitations.all, "verify", token] as const,
   };
@@ -90,14 +93,27 @@ export function useBaseQuery<T>(
 // Base mutation hook with standard error handling
 export function useBaseMutation<TData, TVariables>(
   mutationFn: (variables: TVariables) => Promise<TData>,
-  options?: {
+  {
+    onSuccess,
+    onError,
+    successMessage,
+    errorMessage,
+    invalidateQueries,
+    redirectTo,
+    retry = false,
+    ...rest
+  }: {
     onSuccess?: (data: TData, variables: TVariables) => void;
     onError?: (error: ApiError, variables: TVariables) => void;
     successMessage?: string;
     errorMessage?: string;
     invalidateQueries?: readonly unknown[][];
     redirectTo?: string;
-  } & Omit<UseMutationOptions<TData, ApiError, TVariables>, "mutationFn">
+    retry?: boolean | number;
+  } & Omit<
+    UseMutationOptions<TData, ApiError, TVariables>,
+    "mutationFn" | "onSuccess" | "onError"
+  > = {}
 ) {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -105,36 +121,36 @@ export function useBaseMutation<TData, TVariables>(
   return useMutation<TData, ApiError, TVariables>({
     mutationFn,
     onSuccess: (data, variables) => {
-      // Show success message
-      if (options?.successMessage) {
-        toast.success(options.successMessage);
+      console.log("[useBaseMutation] onSuccess called");
+
+      if (successMessage) {
+        toast.success(successMessage);
       }
 
-      // Invalidate specified queries
-      if (options?.invalidateQueries) {
-        options.invalidateQueries.forEach(queryKey => {
+      if (invalidateQueries) {
+        invalidateQueries.forEach(queryKey => {
           queryClient.invalidateQueries({ queryKey });
         });
       }
 
-      // Redirect if specified
-      if (options?.redirectTo) {
-        router.push(options.redirectTo);
+      if (redirectTo) {
+        try {
+          router.push(redirectTo);
+        } catch (err) {
+          console.error("Redirect failed:", err);
+        }
       }
 
-      // Call custom success handler
-      options?.onSuccess?.(data, variables);
+      onSuccess?.(data, variables);
     },
     onError: (error, variables) => {
-      // Show error message
-      const errorMessage =
-        options?.errorMessage || error.message || "An error occurred";
-      toast.error(errorMessage);
+      console.log("[useBaseMutation] onError called");
 
-      // Call custom error handler
-      options?.onError?.(error, variables);
+      toast.error(errorMessage || error.message || "An error occurred");
+      onError?.(error, variables);
     },
-    ...options,
+    retry,
+    ...rest,
   });
 }
 
@@ -213,16 +229,17 @@ export function useListState(initialFilters?: FilterOptions) {
 }
 
 // Form state management hook
+type FormErrors<T> = Partial<Record<keyof T | string, string | string[]>>;
+
 export function useFormState<T>(initialData: T) {
   const [data, setData] = useState<T>(initialData);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<FormErrors<T>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateField = useCallback(
     (field: keyof T, value: T[keyof T]) => {
       setData(prev => ({ ...prev, [field]: value }));
-      // Clear error for this field when user starts typing
       if (errors[field as string]) {
         setErrors(prev => ({ ...prev, [field as string]: "" }));
       }
@@ -234,14 +251,14 @@ export function useFormState<T>(initialData: T) {
     setData(prev => ({ ...prev, ...newData }));
   }, []);
 
-  const setFieldError = useCallback((field: string, error: string) => {
-    setErrors(prev => ({ ...prev, [field]: error }));
-  }, []);
+  const setFieldError = useCallback(
+    (field: string, error: string | string[]) => {
+      setErrors(prev => ({ ...prev, [field]: error }));
+    },
+    []
+  );
 
-  const clearErrors = useCallback(() => {
-    setErrors({});
-  }, []);
-
+  const clearErrors = useCallback(() => setErrors({}), []);
   const reset = useCallback(() => {
     setData(initialData);
     setErrors({});
