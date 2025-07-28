@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import path from "path";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin();
@@ -15,7 +14,80 @@ const nextConfig: NextConfig = {
     },
   },
   experimental: {
-    optimizePackageImports: ["@/components", "@/lib", "@/hooks"],
+    optimizePackageImports: [
+      "@/components",
+      "@/lib",
+      "@/hooks",
+      "lucide-react",
+      "@radix-ui/react-icons",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-select",
+      "@radix-ui/react-checkbox",
+      "@radix-ui/react-label",
+      "framer-motion",
+    ],
+    // Enable modern bundling optimizations
+    esmExternals: true,
+  },
+
+  // Move from experimental to root level as recommended
+  serverExternalPackages: ["@prisma/client", "bcryptjs", "jsonwebtoken"],
+
+  // Advanced webpack optimizations for bundle splitting
+  webpack: (config, { isServer, dev }) => {
+    // Production optimizations for client-side bundles
+    if (!isServer && !dev) {
+      // Split vendor chunks more granularly
+      config.optimization.splitChunks = {
+        chunks: "all",
+        cacheGroups: {
+          default: false,
+          vendors: false,
+          // React vendor chunk
+          react: {
+            name: "react-vendor",
+            chunks: "all",
+            test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+            priority: 40,
+          },
+          // UI library chunk
+          ui: {
+            name: "ui-vendor",
+            chunks: "all",
+            test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|framer-motion)[\\/]/,
+            priority: 30,
+          },
+          // Utility libraries
+          utils: {
+            name: "utils-vendor",
+            chunks: "all",
+            test: /[\\/]node_modules[\\/](axios|date-fns|zod|class-variance-authority)[\\/]/,
+            priority: 20,
+          },
+          // Everything else
+          vendor: {
+            name: "vendor",
+            chunks: "all",
+            test: /[\\/]node_modules[\\/]/,
+            priority: 10,
+          },
+          common: {
+            minChunks: 2,
+            chunks: "all",
+            name: "common",
+            priority: 5,
+          },
+        },
+      };
+    }
+
+    // SVG handling for all builds
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ["@svgr/webpack"],
+    });
+
+    return config;
   },
 
   // Image optimization
@@ -76,47 +148,13 @@ const nextConfig: NextConfig = {
   },
 
   // Bundle optimization
-  webpack: (config, { dev }) => {
-    // Production optimizations
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: "all",
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            vendor: {
-              name: "vendor",
-              chunks: "all",
-              test: /node_modules/,
-              priority: 20,
-            },
-            common: {
-              minChunks: 2,
-              chunks: "all",
-              name: "common",
-              priority: 10,
-              reuseExistingChunk: true,
-              enforce: true,
-            },
-          },
-        },
-      };
-
-      // Minimize bundle size
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        "@": path.resolve(__dirname, "./src"),
-      };
-    }
-
-    // Security: disable source maps in production
-    if (!dev) {
-      config.devtool = false;
-    }
-
-    return config;
+  modularizeImports: {
+    "lucide-react": {
+      transform: "lucide-react/dist/esm/icons/{{member}}",
+    },
+    "@radix-ui/react-icons": {
+      transform: "@radix-ui/react-icons/dist/{{member}}.js",
+    },
   },
 
   // Strict mode for better development experience
