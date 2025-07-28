@@ -13,6 +13,7 @@ import { useLogin } from "@/hooks/useAuth";
 import { useAuthTranslations } from "@/hooks/useTranslations";
 import { CompactLanguageSwitcher } from "@/components/language-switcher";
 import { Loader2 } from "lucide-react";
+import { VALIDATION_LIMITS } from "@/constants";
 
 export default function LoginPage() {
   const t = useAuthTranslations();
@@ -95,6 +96,7 @@ export default function LoginPage() {
                 placeholder={t("login.emailPlaceholder")}
                 autoComplete="email"
                 required
+                maxLength={VALIDATION_LIMITS.USER.EMAIL_MAX}
               />
 
               <TextField

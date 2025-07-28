@@ -23,3 +23,25 @@ export const QUERY_KEYS = {
   POSTS: ["posts"],
   POST: (id: string) => ["post", id],
 } as const;
+
+// Form validation length limits
+export const VALIDATION_LIMITS = {
+  COMPANY: {
+    NAME_MIN: 3,
+    NAME_MAX: 100,
+    ADDRESS_MIN: 10,
+    ADDRESS_MAX: 500,
+    PHONE_MAX: 20,
+    EMAIL_MAX: 255,
+    NPWP_MAX: 20,
+  },
+  USER: {
+    FIRST_NAME_MIN: 2,
+    FIRST_NAME_MAX: 50,
+    LAST_NAME_MIN: 2,
+    LAST_NAME_MAX: 50,
+    EMAIL_MAX: 255,
+    PASSWORD_MIN: 8,
+    PASSWORD_MAX: 128,
+  },
+} as const;

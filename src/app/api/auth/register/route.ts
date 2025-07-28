@@ -3,22 +3,21 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/database/prisma";
 import { validateNPWP, validatePhone, generateToken } from "@/lib/auth";
+import { companySchema, userSchema } from "@/schemas/auth-schemas";
 
-// API-specific schema that matches the expected payload structure
+// API-specific schema that maps the auth schemas to API format
+// The API expects 'taxId' but the schema uses 'npwp', so we transform it
 const apiRegisterSchema = z.object({
-  company: z.object({
-    name: z.string().min(2, "Company name must be at least 2 characters"),
-    taxId: z.string().min(1, "NPWP is required"), // This comes as taxId from API
-    phone: z.string().min(1, "Phone number is required"),
-    email: z.string().email("Invalid email address"),
-    address: z.string().min(1, "Address is required"),
+  company: companySchema.omit({ npwp: true }).extend({
+    taxId: z
+      .string()
+      .min(1, "NPWP is required")
+      .regex(
+        /^\d{2}\.\d{3}\.\d{3}\.\d{1}-\d{3}\.\d{3}$/,
+        "NPWP must be in format XX.XXX.XXX.X-XXX.XXX"
+      ),
   }),
-  user: z.object({
-    firstName: z.string().min(2, "First name must be at least 2 characters"),
-    lastName: z.string().min(2, "Last name must be at least 2 characters"),
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-  }),
+  user: userSchema,
 });
 
 export async function POST(request: NextRequest) {

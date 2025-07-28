@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { VALIDATION_LIMITS } from "@/constants";
 
 // Indonesian phone number validation
 const indonesianPhoneRegex = /^(\+62|62|0)8[1-9][0-9]{6,9}$/;
@@ -29,8 +30,14 @@ export const companySchema = z.object({
   name: z
     .string()
     .min(1, "Company name is required")
-    .min(3, "Company name must be at least 3 characters")
-    .max(100, "Company name must not exceed 100 characters"),
+    .min(
+      VALIDATION_LIMITS.COMPANY.NAME_MIN,
+      `Company name must be at least ${VALIDATION_LIMITS.COMPANY.NAME_MIN} characters`
+    )
+    .max(
+      VALIDATION_LIMITS.COMPANY.NAME_MAX,
+      `Company name must not exceed ${VALIDATION_LIMITS.COMPANY.NAME_MAX} characters`
+    ),
 
   npwp: z
     .string()
@@ -40,6 +47,10 @@ export const companySchema = z.object({
   phone: z
     .string()
     .min(1, "Phone number is required")
+    .max(
+      VALIDATION_LIMITS.COMPANY.PHONE_MAX,
+      `Phone number must not exceed ${VALIDATION_LIMITS.COMPANY.PHONE_MAX} characters`
+    )
     .regex(
       indonesianPhoneRegex,
       "Please enter a valid Indonesian phone number"
@@ -50,8 +61,14 @@ export const companySchema = z.object({
   address: z
     .string()
     .min(1, "Address is required")
-    .min(10, "Address must be at least 10 characters")
-    .max(500, "Address must not exceed 500 characters"),
+    .min(
+      VALIDATION_LIMITS.COMPANY.ADDRESS_MIN,
+      `Address must be at least ${VALIDATION_LIMITS.COMPANY.ADDRESS_MIN} characters`
+    )
+    .max(
+      VALIDATION_LIMITS.COMPANY.ADDRESS_MAX,
+      `Address must not exceed ${VALIDATION_LIMITS.COMPANY.ADDRESS_MAX} characters`
+    ),
 });
 
 // User information schema
@@ -59,8 +76,14 @@ export const userSchema = z.object({
   firstName: z
     .string()
     .min(1, "First name is required")
-    .min(2, "First name must be at least 2 characters")
-    .max(50, "First name must not exceed 50 characters")
+    .min(
+      VALIDATION_LIMITS.USER.FIRST_NAME_MIN,
+      `First name must be at least ${VALIDATION_LIMITS.USER.FIRST_NAME_MIN} characters`
+    )
+    .max(
+      VALIDATION_LIMITS.USER.FIRST_NAME_MAX,
+      `First name must not exceed ${VALIDATION_LIMITS.USER.FIRST_NAME_MAX} characters`
+    )
     .regex(
       /^[a-zA-Z.'-]+$/,
       "First name can only contain letters, dots, apostrophes, and hyphens"
@@ -69,8 +92,14 @@ export const userSchema = z.object({
   lastName: z
     .string()
     .min(1, "Last name is required")
-    .min(2, "Last name must be at least 2 characters")
-    .max(50, "Last name must not exceed 50 characters")
+    .min(
+      VALIDATION_LIMITS.USER.LAST_NAME_MIN,
+      `Last name must be at least ${VALIDATION_LIMITS.USER.LAST_NAME_MIN} characters`
+    )
+    .max(
+      VALIDATION_LIMITS.USER.LAST_NAME_MAX,
+      `Last name must not exceed ${VALIDATION_LIMITS.USER.LAST_NAME_MAX} characters`
+    )
     .regex(
       /^[a-zA-Z.'-]+$/,
       "Last name can only contain letters, dots, apostrophes, and hyphens"

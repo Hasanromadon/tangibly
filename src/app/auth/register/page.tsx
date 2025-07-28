@@ -14,6 +14,7 @@ import {
   formatNPWP,
   formatPhoneNumber,
 } from "@/schemas/auth-schemas";
+import { VALIDATION_LIMITS } from "@/constants";
 import { useRegister } from "@/hooks/useAuth";
 import { CompactLanguageSwitcher } from "@/components/common/language-switcher";
 
@@ -103,6 +104,7 @@ export default function RegisterPage() {
                   <Input
                     id="companyName"
                     {...form.register("company.name")}
+                    maxLength={VALIDATION_LIMITS.COMPANY.NAME_MAX}
                     placeholder="PT. Your Company Name"
                   />
                   {form.formState.errors.company?.name && (
@@ -118,6 +120,7 @@ export default function RegisterPage() {
                     id="npwp"
                     {...form.register("company.npwp")}
                     onChange={handleNPWPChange}
+                    maxLength={VALIDATION_LIMITS.COMPANY.NPWP_MAX}
                     placeholder="XX.XXX.XXX.X-XXX.XXX"
                   />
                   {form.formState.errors.company?.npwp && (
@@ -133,6 +136,7 @@ export default function RegisterPage() {
                     id="companyPhone"
                     {...form.register("company.phone")}
                     onChange={handlePhoneChange}
+                    maxLength={VALIDATION_LIMITS.COMPANY.PHONE_MAX}
                     placeholder="+62 8xx-xxxx-xxxx"
                   />
                   {form.formState.errors.company?.phone && (
@@ -148,6 +152,7 @@ export default function RegisterPage() {
                     id="companyEmail"
                     type="email"
                     {...form.register("company.email")}
+                    maxLength={VALIDATION_LIMITS.COMPANY.EMAIL_MAX}
                     placeholder="company@example.com"
                   />
                   {form.formState.errors.company?.email && (
@@ -162,6 +167,7 @@ export default function RegisterPage() {
                   <Input
                     id="address"
                     {...form.register("company.address")}
+                    maxLength={VALIDATION_LIMITS.COMPANY.ADDRESS_MAX}
                     placeholder="Full company address including street, city, postal code"
                   />
                   {form.formState.errors.company?.address && (
@@ -184,6 +190,7 @@ export default function RegisterPage() {
                     <Input
                       id="firstName"
                       {...form.register("user.firstName")}
+                      maxLength={VALIDATION_LIMITS.USER.FIRST_NAME_MAX}
                       placeholder="John"
                     />
                     {form.formState.errors.user?.firstName && (
@@ -198,6 +205,7 @@ export default function RegisterPage() {
                     <Input
                       id="lastName"
                       {...form.register("user.lastName")}
+                      maxLength={VALIDATION_LIMITS.USER.LAST_NAME_MAX}
                       placeholder="Doe"
                     />
                     {form.formState.errors.user?.lastName && (
@@ -214,6 +222,7 @@ export default function RegisterPage() {
                     id="userEmail"
                     type="email"
                     {...form.register("user.email")}
+                    maxLength={VALIDATION_LIMITS.USER.EMAIL_MAX}
                     placeholder="admin@example.com"
                   />
                   {form.formState.errors.user?.email && (
@@ -229,6 +238,7 @@ export default function RegisterPage() {
                     id="password"
                     type="password"
                     {...form.register("user.password")}
+                    maxLength={VALIDATION_LIMITS.USER.PASSWORD_MAX}
                     placeholder="Enter a strong password"
                   />
                   {form.formState.errors.user?.password && (
@@ -244,6 +254,7 @@ export default function RegisterPage() {
                     id="confirmPassword"
                     type="password"
                     {...form.register("confirmPassword")}
+                    maxLength={VALIDATION_LIMITS.USER.PASSWORD_MAX}
                     placeholder="Confirm your password"
                   />
                   {form.formState.errors.confirmPassword && (
