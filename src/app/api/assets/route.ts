@@ -205,6 +205,8 @@ export async function POST(request: NextRequest) {
         macAddress: validatedData.macAddress,
         operatingSystem: validatedData.operatingSystem,
         securityClassification: validatedData.securityClassification,
+        softwareLicenses: validatedData.softwareLicenses,
+        hazardousMaterials: validatedData.hazardousMaterials,
         notes: validatedData.notes,
         company: {
           connect: { id: user.companyId },

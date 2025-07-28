@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import UserManagement from "@/components/asset-management/UserManagement";
 import AssetList from "@/components/asset-management/AssetList";
 import AddAssetForm from "@/components/asset-management/AddAssetForm";
+import EditAssetForm from "@/components/asset-management/EditAssetForm";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { useNavigationTranslations } from "@/hooks/useTranslations";
 import { useAuth } from "@/contexts/AuthContext";
@@ -200,14 +201,16 @@ function DashboardOverview() {
 
 function AssetManagement() {
   const [showAddAssetForm, setShowAddAssetForm] = useState(false);
+  const [showEditAssetForm, setShowEditAssetForm] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   const handleAddAsset = () => {
     setShowAddAssetForm(true);
   };
 
   const handleEditAsset = (asset: Asset) => {
-    console.log("Edit asset:", asset);
-    // TODO: Implement edit functionality
+    setSelectedAsset(asset);
+    setShowEditAssetForm(true);
   };
 
   const handleViewAsset = (asset: Asset) => {
@@ -217,6 +220,11 @@ function AssetManagement() {
 
   const handleAssetSuccess = () => {
     // Refresh will be handled by the AssetList component
+  };
+
+  const handleEditClose = () => {
+    setShowEditAssetForm(false);
+    setSelectedAsset(null);
   };
 
   return (
@@ -232,6 +240,15 @@ function AssetManagement() {
         onClose={() => setShowAddAssetForm(false)}
         onSuccess={handleAssetSuccess}
       />
+
+      {selectedAsset && (
+        <EditAssetForm
+          open={showEditAssetForm}
+          onClose={handleEditClose}
+          onSuccess={handleAssetSuccess}
+          asset={selectedAsset}
+        />
+      )}
     </div>
   );
 }

@@ -235,6 +235,25 @@ export const transformFormToApiData = (
   // Handle both typed and untyped form data
   const data = formData as Record<string, unknown>;
 
+  // Helper function to convert datetime-local format to ISO 8601
+  const formatDateTimeForAPI = (
+    dateTimeLocal: string | undefined | null
+  ): string | undefined => {
+    if (!dateTimeLocal || dateTimeLocal.trim() === "") return undefined;
+
+    try {
+      // datetime-local format: "YYYY-MM-DDTHH:mm"
+      // Convert to ISO format: "YYYY-MM-DDTHH:mm:ss.sssZ"
+      const date = new Date(dateTimeLocal);
+      if (isNaN(date.getTime())) return undefined;
+
+      return date.toISOString();
+    } catch (error) {
+      console.warn("Invalid date format:", dateTimeLocal, error);
+      return undefined;
+    }
+  };
+
   return {
     name: data.name as string,
     description: (data.description as string) || undefined,
@@ -248,10 +267,10 @@ export const transformFormToApiData = (
     purchaseCost: data.purchaseCost
       ? Number(data.purchaseCost as string)
       : undefined,
-    purchaseDate: (data.purchaseDate as string) || undefined,
+    purchaseDate: formatDateTimeForAPI(data.purchaseDate as string),
     purchaseOrderNumber: (data.purchaseOrderNumber as string) || undefined,
     invoiceNumber: (data.invoiceNumber as string) || undefined,
-    warrantyExpiresAt: (data.warrantyExpiresAt as string) || undefined,
+    warrantyExpiresAt: formatDateTimeForAPI(data.warrantyExpiresAt as string),
     salvageValue: data.salvageValue
       ? Number(data.salvageValue as string)
       : undefined,
@@ -303,3 +322,78 @@ export const getDefaultFormValues = (): AssetFormData => ({
   recyclable: false,
   notes: "",
 });
+
+// Utility functions for date handling
+export const dateUtils = {
+  /**
+   * Convert ISO datetime string to datetime-local format for form inputs
+   * @param isoDateTime ISO 8601 datetime string
+   * @returns datetime-local format string (YYYY-MM-DDTHH:mm)
+   */
+  isoToDateTimeLocal: (isoDateTime: string | null | undefined): string => {
+    if (!isoDateTime) return "";
+
+    try {
+      const date = new Date(isoDateTime);
+      if (isNaN(date.getTime())) return "";
+
+      // Convert to local time and format for datetime-local input
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch (error) {
+      console.warn(
+        "Failed to convert ISO date to datetime-local:",
+        isoDateTime,
+        error
+      );
+      return "";
+    }
+  },
+
+  /**
+   * Convert datetime-local format to ISO 8601 string
+   * @param dateTimeLocal datetime-local format string (YYYY-MM-DDTHH:mm)
+   * @returns ISO 8601 datetime string
+   */
+  dateTimeLocalToISO: (
+    dateTimeLocal: string | null | undefined
+  ): string | undefined => {
+    if (!dateTimeLocal || dateTimeLocal.trim() === "") return undefined;
+
+    try {
+      const date = new Date(dateTimeLocal);
+      if (isNaN(date.getTime())) return undefined;
+
+      return date.toISOString();
+    } catch (error) {
+      console.warn(
+        "Failed to convert datetime-local to ISO:",
+        dateTimeLocal,
+        error
+      );
+      return undefined;
+    }
+  },
+
+  /**
+   * Validate datetime-local format
+   * @param dateTimeLocal datetime-local format string
+   * @returns boolean indicating if format is valid
+   */
+  isValidDateTimeLocal: (dateTimeLocal: string): boolean => {
+    if (!dateTimeLocal) return false;
+
+    // Check format: YYYY-MM-DDTHH:mm
+    const dateTimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+    if (!dateTimeLocalRegex.test(dateTimeLocal)) return false;
+
+    // Check if it's a valid date
+    const date = new Date(dateTimeLocal);
+    return !isNaN(date.getTime());
+  },
+};

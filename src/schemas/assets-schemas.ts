@@ -54,14 +54,22 @@ export const baseAssetSchema = z.object({
     .optional(),
   purchaseDate: z
     .string()
-    .datetime({ message: "Invalid purchase date format" })
-    .optional(),
+    .datetime({
+      message:
+        "Purchase date must be a valid ISO datetime (YYYY-MM-DDTHH:mm:ss.sssZ)",
+    })
+    .optional()
+    .or(z.literal("")),
   purchaseOrderNumber: z.string().max(50, "PO number too long").optional(),
   invoiceNumber: z.string().max(50, "Invoice number too long").optional(),
   warrantyExpiresAt: z
     .string()
-    .datetime({ message: "Invalid warranty date format" })
-    .optional(),
+    .datetime({
+      message:
+        "Warranty expiry date must be a valid ISO datetime (YYYY-MM-DDTHH:mm:ss.sssZ)",
+    })
+    .optional()
+    .or(z.literal("")),
 
   // Depreciation with business rules
   depreciationMethod: z
@@ -211,10 +219,36 @@ export const assetFormSchema = z
 
     // Financial Information (as strings for form inputs, will be transformed)
     purchaseCost: z.string().optional(),
-    purchaseDate: z.string().optional(),
+    purchaseDate: z
+      .string()
+      .optional()
+      .refine(
+        val => {
+          if (!val || val.trim() === "") return true;
+          // Validate datetime-local format: YYYY-MM-DDTHH:mm
+          const dateTimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+          return dateTimeLocalRegex.test(val);
+        },
+        {
+          message: "Purchase date must be in YYYY-MM-DDTHH:mm format",
+        }
+      ),
     purchaseOrderNumber: z.string().optional(),
     invoiceNumber: z.string().optional(),
-    warrantyExpiresAt: z.string().optional(),
+    warrantyExpiresAt: z
+      .string()
+      .optional()
+      .refine(
+        val => {
+          if (!val || val.trim() === "") return true;
+          // Validate datetime-local format: YYYY-MM-DDTHH:mm
+          const dateTimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+          return dateTimeLocalRegex.test(val);
+        },
+        {
+          message: "Warranty expiry date must be in YYYY-MM-DDTHH:mm format",
+        }
+      ),
     salvageValue: z.string().default("0"),
 
     // Depreciation
