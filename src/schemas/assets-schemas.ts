@@ -217,38 +217,12 @@ export const assetFormSchema = z
       .enum(Object.values(ASSET_CRITICALITY) as [string, ...string[]])
       .default(ASSET_CRITICALITY.MEDIUM),
 
-    // Financial Information (as strings for form inputs, will be transformed)
+    // Financial Information with proper date handling
     purchaseCost: z.string().optional(),
-    purchaseDate: z
-      .string()
-      .optional()
-      .refine(
-        val => {
-          if (!val || val.trim() === "") return true;
-          // Validate datetime-local format: YYYY-MM-DDTHH:mm
-          const dateTimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-          return dateTimeLocalRegex.test(val);
-        },
-        {
-          message: "Purchase date must be in YYYY-MM-DDTHH:mm format",
-        }
-      ),
+    purchaseDate: z.date().optional().or(z.literal("")),
     purchaseOrderNumber: z.string().optional(),
     invoiceNumber: z.string().optional(),
-    warrantyExpiresAt: z
-      .string()
-      .optional()
-      .refine(
-        val => {
-          if (!val || val.trim() === "") return true;
-          // Validate datetime-local format: YYYY-MM-DDTHH:mm
-          const dateTimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-          return dateTimeLocalRegex.test(val);
-        },
-        {
-          message: "Warranty expiry date must be in YYYY-MM-DDTHH:mm format",
-        }
-      ),
+    warrantyExpiresAt: z.date().optional().or(z.literal("")),
     salvageValue: z.string().default("0"),
 
     // Depreciation

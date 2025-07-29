@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/database/prisma";
-import { validateNPWP, validatePhone, generateToken } from "@/lib/auth";
+import { generateToken } from "@/lib/auth";
 import { companySchema, userSchema } from "@/schemas/auth-schemas";
+import { validationHelpers } from "@/lib";
 
 // API-specific schema that maps the auth schemas to API format
 // The API expects 'taxId' but the schema uses 'npwp', so we transform it
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
     console.log("User:", user);
 
     // Validate Indonesian NPWP if provided
-    if (company.taxId && !validateNPWP(company.taxId)) {
+    if (company.taxId && !validationHelpers.isValidNPWP(company.taxId)) {
       console.log("NPWP validation failed for:", company.taxId);
       return NextResponse.json(
         {
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     console.log("NPWP validation passed");
 
     // Validate phone number if provided
-    if (company.phone && !validatePhone(company.phone)) {
+    if (company.phone && !validationHelpers.isValidPhone(company.phone)) {
       console.log("Phone validation failed for:", company.phone);
       return NextResponse.json(
         {

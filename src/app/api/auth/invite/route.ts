@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/database/prisma";
-import { verifyToken, generateToken, validatePhone } from "@/lib/auth";
+import { verifyToken, generateToken } from "@/lib/auth";
 import { inviteUserSchema } from "@/schemas/invite-schemas";
+import { validationHelpers } from "@/lib";
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     } = validation.data;
 
     // Validate phone number if provided
-    if (phone && !validatePhone(phone)) {
+    if (phone && !validationHelpers.isValidPhone(phone)) {
       return NextResponse.json(
         { error: "Invalid Indonesian phone number format" },
         { status: 400 }

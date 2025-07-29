@@ -131,19 +131,7 @@ export function generateQRCode(assetData: {
   return JSON.stringify(assetData);
 }
 
-export function validateNPWP(npwp: string): boolean {
-  // NPWP format: XX.XXX.XXX.X-XXX.XXX
-  const npwpRegex = /^\d{2}\.\d{3}\.\d{3}\.\d{1}-\d{3}\.\d{3}$/;
-  return npwpRegex.test(npwp);
-}
-
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
-}
-
-export function validatePhone(phone: string): boolean {
-  // Indonesian phone number format: +62-8XX-XXXX-XXXX or 08XX-XXXX-XXXX (more flexible)
-  const phoneRegex = /^(\+62-?|0)8\d{2,3}-?\d{3,4}-?\d{3,4}$/;
-  return phoneRegex.test(phone);
 }

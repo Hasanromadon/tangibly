@@ -1,30 +1,9 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { ApiResponse } from "@/types";
+import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 
 // Base API configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 const API_TIMEOUT = 30000;
-
-// Request/Response types for strong typing
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-  details?: Array<{
-    path: string[];
-    message: string;
-    code?: string;
-  }>;
-}
-
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
 
 // Error handling interfaces
 export interface ApiError {

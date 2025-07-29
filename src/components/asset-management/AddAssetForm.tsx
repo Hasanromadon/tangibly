@@ -8,13 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -33,11 +26,10 @@ import { useCreateAssetWithValidation } from "@/hooks/useAssets";
 import { assetFormSchema } from "@/schemas/assets-schemas";
 import { transformFormToApiData } from "@/types/asset-types";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
-import {
-  useAssetTranslations,
-  useCommonTranslations,
-} from "@/hooks/useTranslations";
+import { useAssetTranslations } from "@/hooks/useTranslations";
 import { toast } from "sonner";
+import { EnhancedSelectField } from "@/components/forms/enhanced-select";
+import { DatePicker } from "@/components/forms/enhanced-date-picker";
 
 interface AddAssetFormProps {
   open: boolean;
@@ -54,7 +46,6 @@ export default function AddAssetForm({
 
   // Initialize translations
   const t = useAssetTranslations();
-  const commonT = useCommonTranslations();
 
   const form = useForm({
     resolver: zodResolver(assetFormSchema),
@@ -69,10 +60,10 @@ export default function AddAssetForm({
       condition: "good",
       criticality: "medium",
       purchaseCost: "",
-      purchaseDate: "",
+      purchaseDate: undefined,
       purchaseOrderNumber: "",
       invoiceNumber: "",
-      warrantyExpiresAt: "",
+      warrantyExpiresAt: undefined,
       salvageValue: "0",
       depreciationMethod: "straight_line",
       usefulLifeYears: "",
@@ -215,128 +206,49 @@ export default function AddAssetForm({
                   )}
                 />
 
-                <FormField
+                <EnhancedSelectField
                   control={form.control}
                   name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("fields.status")}</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={t("selectPlaceholders.selectStatus")}
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="active">
-                            {t("status.active")}
-                          </SelectItem>
-                          <SelectItem value="inactive">
-                            {t("status.inactive")}
-                          </SelectItem>
-                          <SelectItem value="maintenance">
-                            {t("status.maintenance")}
-                          </SelectItem>
-                          <SelectItem value="disposed">
-                            {t("status.disposed")}
-                          </SelectItem>
-                          <SelectItem value="stolen">
-                            {t("status.stolen")}
-                          </SelectItem>
-                          <SelectItem value="lost">
-                            {t("status.lost")}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label={t("fields.status")}
+                  placeholder={t("selectPlaceholders.selectStatus")}
+                  options={[
+                    { value: "active", label: t("status.active") },
+                    { value: "inactive", label: t("status.inactive") },
+                    { value: "maintenance", label: t("status.maintenance") },
+                    { value: "disposed", label: t("status.disposed") },
+                    { value: "stolen", label: t("status.stolen") },
+                    { value: "lost", label: t("status.lost") },
+                  ]}
+                  allowClear
                 />
 
-                <FormField
+                <EnhancedSelectField
                   control={form.control}
                   name="condition"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("fields.condition")}</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={t(
-                                "selectPlaceholders.selectCondition"
-                              )}
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="excellent">
-                            {t("conditions.excellent")}
-                          </SelectItem>
-                          <SelectItem value="good">
-                            {t("conditions.good")}
-                          </SelectItem>
-                          <SelectItem value="fair">
-                            {t("conditions.fair")}
-                          </SelectItem>
-                          <SelectItem value="poor">
-                            {t("conditions.poor")}
-                          </SelectItem>
-                          <SelectItem value="damaged">
-                            {t("conditions.damaged")}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label={t("fields.condition")}
+                  placeholder={t("selectPlaceholders.selectCondition")}
+                  options={[
+                    { value: "excellent", label: t("conditions.excellent") },
+                    { value: "good", label: t("conditions.good") },
+                    { value: "fair", label: t("conditions.fair") },
+                    { value: "poor", label: t("conditions.poor") },
+                    { value: "damaged", label: t("conditions.damaged") },
+                  ]}
+                  allowClear
                 />
 
-                <FormField
+                <EnhancedSelectField
                   control={form.control}
                   name="criticality"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("fields.criticality")}</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={t(
-                                "selectPlaceholders.selectCriticality"
-                              )}
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="critical">
-                            {t("criticality.critical")}
-                          </SelectItem>
-                          <SelectItem value="high">
-                            {t("criticality.high")}
-                          </SelectItem>
-                          <SelectItem value="medium">
-                            {t("criticality.medium")}
-                          </SelectItem>
-                          <SelectItem value="low">
-                            {t("criticality.low")}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label={t("fields.criticality")}
+                  placeholder={t("selectPlaceholders.selectCriticality")}
+                  options={[
+                    { value: "critical", label: t("criticality.critical") },
+                    { value: "high", label: t("criticality.high") },
+                    { value: "medium", label: t("criticality.medium") },
+                    { value: "low", label: t("criticality.low") },
+                  ]}
+                  allowClear
                 />
               </div>
 
@@ -386,18 +298,12 @@ export default function AddAssetForm({
                   )}
                 />
 
-                <FormField
+                <DatePicker
                   control={form.control}
                   name="purchaseDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("fields.purchaseDate")}</FormLabel>
-                      <FormControl>
-                        <Input type="datetime-local" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label={t("fields.purchaseDate")}
+                  placeholder="Select purchase date"
+                  allowClear
                 />
 
                 <FormField
@@ -436,18 +342,12 @@ export default function AddAssetForm({
                   )}
                 />
 
-                <FormField
+                <DatePicker
                   control={form.control}
                   name="warrantyExpiresAt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("fields.warrantyExpires")}</FormLabel>
-                      <FormControl>
-                        <Input type="datetime-local" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label={t("fields.warrantyExpires")}
+                  placeholder="Select warranty expiry date"
+                  allowClear
                 />
 
                 <FormField
@@ -475,36 +375,20 @@ export default function AddAssetForm({
             <Card className="p-4">
               <h3 className="mb-4 text-lg font-semibold">Depreciation</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField
+                <EnhancedSelectField
                   control={form.control}
                   name="depreciationMethod"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("fields.depreciationMethod")}</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select method" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="straight_line">
-                            Straight Line
-                          </SelectItem>
-                          <SelectItem value="declining_balance">
-                            Declining Balance
-                          </SelectItem>
-                          <SelectItem value="units_of_production">
-                            Units of Production
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label={t("fields.depreciationMethod")}
+                  placeholder="Select method"
+                  options={[
+                    { value: "straight_line", label: "Straight Line" },
+                    { value: "declining_balance", label: "Declining Balance" },
+                    {
+                      value: "units_of_production",
+                      label: "Units of Production",
+                    },
+                  ]}
+                  allowClear
                 />
 
                 <FormField
@@ -579,41 +463,18 @@ export default function AddAssetForm({
                   )}
                 />
 
-                <FormField
+                <EnhancedSelectField
                   control={form.control}
                   name="securityClassification"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t("fields.securityClassification")}
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select classification" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="public">
-                            {t("fields.public")}
-                          </SelectItem>
-                          <SelectItem value="internal">
-                            {t("fields.internal")}
-                          </SelectItem>
-                          <SelectItem value="confidential">
-                            {t("fields.confidential")}
-                          </SelectItem>
-                          <SelectItem value="restricted">
-                            {t("fields.restricted")}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label={t("fields.securityClassification")}
+                  placeholder="Select classification"
+                  options={[
+                    { value: "public", label: t("fields.public") },
+                    { value: "internal", label: t("fields.internal") },
+                    { value: "confidential", label: t("fields.confidential") },
+                    { value: "restricted", label: t("fields.restricted") },
+                  ]}
+                  allowClear
                 />
               </div>
             </Card>
