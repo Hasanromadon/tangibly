@@ -74,10 +74,7 @@ export class ApiClient {
    */
   private getAuthToken(): string | null {
     if (typeof window !== "undefined") {
-      return (
-        localStorage.getItem("auth_token") ||
-        sessionStorage.getItem("auth_token")
-      );
+      return localStorage.getItem("token") || sessionStorage.getItem("token");
     }
     return null;
   }
@@ -187,9 +184,9 @@ export class ApiClient {
   setAuthToken(token: string, persistent = false): void {
     if (typeof window !== "undefined") {
       if (persistent) {
-        localStorage.setItem("auth_token", token);
+        localStorage.setItem("token", token);
       } else {
-        sessionStorage.setItem("auth_token", token);
+        sessionStorage.setItem("token", token);
       }
     }
   }
@@ -197,8 +194,8 @@ export class ApiClient {
   // Clear authentication token
   clearAuthToken(): void {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("auth_token");
-      sessionStorage.removeItem("auth_token");
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
     }
   }
 
