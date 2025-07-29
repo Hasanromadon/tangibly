@@ -1,29 +1,30 @@
 import {
   userApiService,
-  User,
   UserCreateData,
   UserUpdateData,
 } from "@/services/user-api";
-import { validateApiResponse } from "@/lib/base-api-service";
 import {
   useBaseMutation,
   useBaseQuery,
   useBaseList,
   QueryKeys,
 } from "@/hooks/base-hooks";
-import { QueryOptions, PaginatedResponse } from "@/types";
+import { QueryOptions, PaginatedResponse } from "@/types/common";
+import { AssetUser } from "@/types";
+import { toast } from "sonner";
 
 // Get paginated users list
 export function useUsers(options?: QueryOptions) {
   return useBaseList(
     QueryKeys.users.list(options),
-    async () => {
+    async (): Promise<PaginatedResponse<AssetUser>> => {
       const response = await userApiService.getUsers(options);
-      // Return the full response since it should be a PaginatedResponse
-      if (!response.success) {
-        throw new Error(response.error || "Failed to fetch users");
-      }
-      return response as PaginatedResponse<User>;
+      // Transform the response to match PaginatedResponse interface
+      return {
+        success: true,
+        data: response.data,
+        pagination: response.pagination,
+      };
     },
     options
   );
@@ -34,8 +35,7 @@ export function useUser(id: string) {
   return useBaseQuery(
     QueryKeys.users.detail(id),
     async () => {
-      const response = await userApiService.getUser(id);
-      return validateApiResponse(response);
+      return await userApiService.getUser(id);
     },
     {
       enabled: !!id,
@@ -45,32 +45,38 @@ export function useUser(id: string) {
 
 // Create new user mutation
 export function useCreateUser() {
-  return useBaseMutation<User, UserCreateData>(
-    async data => {
-      const response = await userApiService.createUser(data);
-      return validateApiResponse(response);
+  return useBaseMutation(
+    async (data: UserCreateData) => {
+      return await userApiService.createUser(data);
     },
     {
-      successMessage: "User created successfully!",
-      errorMessage: "Failed to create user. Please try again.",
-      invalidateQueries: [[...QueryKeys.users.lists()]],
+      onSuccess: () => {
+        toast.success("User created successfully!");
+      },
+      onError: () => {
+        toast.error("Failed to create user. Please try again.");
+      },
+      invalidateQueries: [Array.from(QueryKeys.users.lists())],
     }
   );
 }
 
 // Update user mutation
 export function useUpdateUser() {
-  return useBaseMutation<User, { id: string; data: UserUpdateData }>(
-    async ({ id, data }) => {
-      const response = await userApiService.updateUser(id, data);
-      return validateApiResponse(response);
+  return useBaseMutation(
+    async ({ id, data }: { id: string; data: UserUpdateData }) => {
+      return await userApiService.updateUser(id, data);
     },
     {
-      successMessage: "User updated successfully!",
-      errorMessage: "Failed to update user. Please try again.",
+      onSuccess: () => {
+        toast.success("User updated successfully!");
+      },
+      onError: () => {
+        toast.error("Failed to update user. Please try again.");
+      },
       invalidateQueries: [
-        [...QueryKeys.users.lists()],
-        [...QueryKeys.users.details()],
+        Array.from(QueryKeys.users.lists()),
+        Array.from(QueryKeys.users.details()),
       ],
     }
   );
@@ -78,66 +84,43 @@ export function useUpdateUser() {
 
 // Delete user mutation
 export function useDeleteUser() {
-  return useBaseMutation<void, string>(
-    async id => {
-      const response = await userApiService.deleteUser(id);
-      return validateApiResponse(response);
+  return useBaseMutation(
+    async (id: string) => {
+      return await userApiService.deleteUser(id);
     },
     {
-      successMessage: "User deleted successfully!",
-      errorMessage: "Failed to delete user. Please try again.",
-      invalidateQueries: [[...QueryKeys.users.lists()]],
+      onSuccess: () => {
+        toast.success("User deleted successfully!");
+      },
+      onError: () => {
+        toast.error("Failed to delete user. Please try again.");
+      },
+      invalidateQueries: [Array.from(QueryKeys.users.lists())],
     }
   );
 }
 
-// Activate user mutation
-export function useActivateUser() {
-  return useBaseMutation<User, string>(
-    async id => {
-      const response = await userApiService.activateUser(id);
-      return validateApiResponse(response);
-    },
-    {
-      successMessage: "User activated successfully!",
-      errorMessage: "Failed to activate user. Please try again.",
-      invalidateQueries: [
-        [...QueryKeys.users.lists()],
-        [...QueryKeys.users.details()],
-      ],
-    }
-  );
+// Get user profile hook
+export function useUserProfile() {
+  return useBaseQuery(QueryKeys.users.detail("profile"), async () => {
+    return await userApiService.getUserProfile();
+  });
 }
 
-// Deactivate user mutation
-export function useDeactivateUser() {
-  return useBaseMutation<User, string>(
-    async id => {
-      const response = await userApiService.deactivateUser(id);
-      return validateApiResponse(response);
+// Update user profile mutation
+export function useUpdateUserProfile() {
+  return useBaseMutation(
+    async (data: UserUpdateData) => {
+      return await userApiService.updateUserProfile(data);
     },
     {
-      successMessage: "User deactivated successfully!",
-      errorMessage: "Failed to deactivate user. Please try again.",
-      invalidateQueries: [
-        [...QueryKeys.users.lists()],
-        [...QueryKeys.users.details()],
-      ],
-    }
-  );
-}
-
-// Reset user password mutation
-export function useResetUserPassword() {
-  return useBaseMutation<{ temporaryPassword: string }, string>(
-    async id => {
-      const response = await userApiService.resetUserPassword(id);
-      return validateApiResponse(response);
-    },
-    {
-      successMessage:
-        "Password reset successfully! Temporary password sent to user.",
-      errorMessage: "Failed to reset password. Please try again.",
+      onSuccess: () => {
+        toast.success("Profile updated successfully!");
+      },
+      onError: () => {
+        toast.error("Failed to update profile. Please try again.");
+      },
+      invalidateQueries: [Array.from(QueryKeys.users.detail("profile"))],
     }
   );
 }

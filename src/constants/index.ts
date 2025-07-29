@@ -1,3 +1,8 @@
+// Re-export all constants for easy importing
+export * from "./config";
+export * from "./business";
+
+// Legacy exports (keeping for backward compatibility)
 export const API_ENDPOINTS = {
   USERS: "/api/users",
   AUTH: {
@@ -24,7 +29,7 @@ export const QUERY_KEYS = {
   POST: (id: string) => ["post", id],
 } as const;
 
-// Form validation length limits
+// Form validation length limits (moved to business.ts but kept here for compatibility)
 export const VALIDATION_LIMITS = {
   COMPANY: {
     NAME_MIN: 3,

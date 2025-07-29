@@ -6,38 +6,6 @@ import {
   SubscriptionStatus,
 } from "./common";
 
-// ===== Base API Response Types =====
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
-
-export interface PaginatedResponse<T = unknown> {
-  success: boolean;
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
-
-export interface ValidationError {
-  field: string;
-  message: string;
-}
-
-export interface ErrorResponse {
-  success: false;
-  error: string;
-  details?: ValidationError[];
-}
-
 // ===== Entity Types =====
 
 // User related interfaces

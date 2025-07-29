@@ -7,30 +7,36 @@ import {
   InviteUserData,
   AcceptInvitationData,
   UserInvitation,
-  VerifyInvitationResponse,
 } from "@/services/auth-api";
-import { validateApiResponse } from "@/lib/base-api-service";
 import { useBaseMutation, useBaseQuery, QueryKeys } from "@/hooks/base-hooks";
-import { ApiError } from "@/types";
+import { ApiError } from "@/types/common";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 // Login mutation hook
 export function useLogin() {
   const router = useRouter();
   const { login } = useAuth();
 
-  return useBaseMutation<AuthResponse, LoginCredentials>(
-    async credentials => {
-      const response = await authApiService.login(credentials);
-      return validateApiResponse(response);
+  return useBaseMutation(
+    async (credentials: LoginCredentials) => {
+      return await authApiService.login(credentials);
     },
     {
-      onSuccess: data => {
-        login(data.token, data.user, data.company);
-        router.push("/asset-management");
+      onSuccess: async (data: AuthResponse) => {
+        // Get full user and company data after login
+        try {
+          const { user, company } = await authApiService.getCurrentUser();
+          login(data.token, user, company);
+          toast.success("Login successful");
+          router.push("/asset-management");
+        } catch {
+          toast.error("Failed to get user data after login");
+        }
       },
-      successMessage: "Login successful! Welcome back.",
-      errorMessage: "Login failed. Please check your credentials.",
+      onError: (error: ApiError) => {
+        toast.error(`Login failed: ${error.message}`);
+      },
     }
   );
 }
@@ -38,20 +44,19 @@ export function useLogin() {
 // Register mutation hook
 export function useRegister() {
   const router = useRouter();
-  const { login } = useAuth();
 
-  return useBaseMutation<AuthResponse, RegisterData>(
-    async data => {
-      const response = await authApiService.register(data);
-      return validateApiResponse(response);
+  return useBaseMutation(
+    async (data: RegisterData) => {
+      return await authApiService.register(data);
     },
     {
-      onSuccess: data => {
-        login(data.token, data.user, data.company);
-        router.push("/asset-management");
+      onSuccess: () => {
+        toast.success("Registration successful");
+        router.push("/auth/login");
       },
-      successMessage: "Registration successful! Welcome to Tangibly.",
-      errorMessage: "Registration failed. Please try again.",
+      onError: (error: ApiError) => {
+        toast.error(`Registration failed: ${error.message}`);
+      },
     }
   );
 }
@@ -61,59 +66,53 @@ export function useLogout() {
   const router = useRouter();
   const { logout } = useAuth();
 
-  return useBaseMutation<void, void>(
+  return useBaseMutation(
     async () => {
-      const response = await authApiService.logout();
-      return validateApiResponse(response);
+      await authApiService.logout();
     },
     {
       onSuccess: () => {
         logout();
+        toast.success("Logged out successfully");
         router.push("/auth/login");
       },
-      onError: () => {
-        // Force logout even if API call fails
+      onError: (error: ApiError) => {
+        // Even if logout API fails, clear local state
         logout();
         router.push("/auth/login");
+        toast.error(`Logout error: ${error.message}`);
       },
-      successMessage: "Logged out successfully.",
     }
   );
 }
 
-// Get current user query hook
+// Get current user hook
 export function useCurrentUser() {
   return useBaseQuery(
     QueryKeys.auth.me(),
     async () => {
-      const response = await authApiService.getCurrentUser();
-      return validateApiResponse(response);
+      return await authApiService.getCurrentUser();
     },
     {
-      enabled: typeof window !== "undefined" && !!localStorage.getItem("token"),
+      enabled: true,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: (failureCount, error: ApiError) => {
-        // Don't retry on auth errors
-        if (error.status === 401 || error.status === 403) {
-          return false;
-        }
-        return failureCount < 3;
-      },
     }
   );
 }
 
 // Invite user mutation hook
 export function useInviteUser() {
-  return useBaseMutation<UserInvitation, InviteUserData>(
-    async data => {
-      const response = await authApiService.inviteUser(data);
-      return validateApiResponse(response);
+  return useBaseMutation(
+    async (data: InviteUserData) => {
+      return await authApiService.inviteUser(data);
     },
     {
-      successMessage: "Invitation sent successfully!",
-      errorMessage: "Failed to send invitation. Please try again.",
-      invalidateQueries: [[...QueryKeys.invitations.lists()]],
+      onSuccess: (invitation: UserInvitation) => {
+        toast.success(`Invitation sent to ${invitation.email}`);
+      },
+      onError: (error: ApiError) => {
+        toast.error(`Failed to send invitation: ${error.message}`);
+      },
     }
   );
 }
@@ -123,55 +122,52 @@ export function useAcceptInvitation() {
   const router = useRouter();
   const { login } = useAuth();
 
-  return useBaseMutation<AuthResponse, AcceptInvitationData>(
-    async data => {
-      const response = await authApiService.acceptInvitation(data);
-      return validateApiResponse(response);
+  return useBaseMutation(
+    async (data: AcceptInvitationData) => {
+      return await authApiService.acceptInvitation(data);
     },
     {
-      onSuccess: data => {
-        login(data.token, data.user, data.company);
-        router.push("/asset-management");
+      onSuccess: async (data: AuthResponse) => {
+        // Get full user and company data after accepting invitation
+        try {
+          const { user, company } = await authApiService.getCurrentUser();
+          login(data.token, user, company);
+          toast.success("Invitation accepted successfully");
+          router.push("/asset-management");
+        } catch {
+          toast.error("Failed to get user data after accepting invitation");
+        }
       },
-      successMessage: "Invitation accepted successfully! Welcome to the team.",
-      errorMessage: "Failed to accept invitation. Please try again.",
+      onError: (error: ApiError) => {
+        toast.error(`Failed to accept invitation: ${error.message}`);
+      },
     }
   );
 }
 
-// Verify invitation query hook
+// Verify invitation hook
 export function useVerifyInvitation(token: string) {
-  return useBaseQuery<VerifyInvitationResponse>(
+  return useBaseQuery(
     QueryKeys.auth.verify(token),
     async () => {
-      const response = await authApiService.verifyInvitation(token);
-      return validateApiResponse(response);
+      return await authApiService.verifyInvitation(token);
     },
     {
       enabled: !!token,
-      retry: false, // Don't retry invalid tokens
+      retry: false,
     }
   );
 }
 
 // Refresh token mutation hook
 export function useRefreshToken() {
-  return useBaseMutation<{ token: string }, void>(
+  return useBaseMutation(
     async () => {
-      const response = await authApiService.refreshToken();
-      return validateApiResponse(response);
+      return await authApiService.refreshToken();
     },
     {
-      onSuccess: data => {
-        // Update token in localStorage
-        localStorage.setItem("token", data.token);
-      },
-      onError: () => {
-        // Force logout on refresh failure
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("company");
-        window.location.href = "/auth/login";
+      onError: (error: ApiError) => {
+        console.error("Token refresh failed:", error.message);
       },
     }
   );

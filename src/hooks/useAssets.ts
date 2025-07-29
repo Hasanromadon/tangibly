@@ -3,32 +3,22 @@ import {
   Asset,
   AssetCreateData,
   AssetUpdateData,
-  AssetMovement,
 } from "@/services/asset-api";
-import { validateApiResponse } from "@/lib/base-api-service";
-import {
-  useBaseMutation,
-  useBaseQuery,
-  useBaseList,
-  QueryKeys,
-} from "@/hooks/base-hooks";
-import { QueryOptions, ApiError } from "@/types";
+import { useBaseMutation, useBaseQuery, QueryKeys } from "@/hooks/base-hooks";
+import { QueryOptions, ApiError } from "@/types/common";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
 
 // Get paginated assets list
 export function useAssets(options?: QueryOptions) {
-  return useBaseList(
+  return useBaseQuery(
     QueryKeys.assets.list(options),
     async () => {
-      const response = await assetApiService.getAssets(options);
-      if (!response.success) {
-        throw new Error(response.error || "Failed to fetch assets");
-      }
-      return response;
+      return await assetApiService.getAssets(options);
     },
-    options
+    {
+      enabled: true,
+    }
   );
 }
 
@@ -37,8 +27,7 @@ export function useAsset(id: string) {
   return useBaseQuery(
     QueryKeys.assets.detail(id),
     async () => {
-      const response = await assetApiService.getAsset(id);
-      return validateApiResponse(response);
+      return await assetApiService.getAsset(id);
     },
     {
       enabled: !!id,
@@ -46,312 +35,170 @@ export function useAsset(id: string) {
   );
 }
 
-// Create new asset mutation with comprehensive error handling
+// Create new asset mutation
 export function useCreateAsset() {
   const queryClient = useQueryClient();
 
-  return useBaseMutation<Asset, AssetCreateData>(
-    async data => {
-      const response = await assetApiService.createAsset(data);
-      return validateApiResponse(response);
+  return useBaseMutation(
+    async (data: AssetCreateData) => {
+      return await assetApiService.createAsset(data);
     },
     {
-      onSuccess: asset => {
+      onSuccess: (asset: Asset) => {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.assets.all] });
         toast.success(`Asset "${asset.name}" created successfully`);
-        // Invalidate and refetch assets list
-        queryClient.invalidateQueries({ queryKey: QueryKeys.assets.all });
-        // Update the asset detail cache
-        queryClient.setQueryData(QueryKeys.assets.detail(asset.id), asset);
       },
-      onError: error => {
-        console.error("Error creating asset:", error);
-        toast.error(error.message || "Failed to create asset");
+      onError: (error: ApiError) => {
+        toast.error(`Failed to create asset: ${error.message}`);
       },
     }
   );
 }
 
-// Enhanced create asset hook with form validation
+// Create asset with validation - alias for form usage
 export function useCreateAssetWithValidation() {
-  const createMutation = useCreateAsset();
-
-  return {
-    ...createMutation,
-    createAssetAsync: async (data: AssetCreateData) => {
-      // Client-side validation before API call
-      try {
-        return createMutation.mutateAsync(data);
-      } catch (error: unknown) {
-        if (error && typeof error === "object" && "errors" in error) {
-          const validationError = error as {
-            errors: Array<{ path: string[]; message: string }>;
-          };
-          const errorMessage =
-            validationError.errors
-              ?.map(err => `${err.path.join(".")}: ${err.message}`)
-              .join(", ") || "Validation failed";
-
-          throw new Error(errorMessage);
-        }
-
-        throw new Error("Validation failed");
-      }
-    },
-  };
+  return useCreateAsset();
 }
 
 // Update asset mutation
 export function useUpdateAsset() {
-  return useBaseMutation<Asset, { id: string; data: AssetUpdateData }>(
-    async ({ id, data }) => {
-      const response = await assetApiService.updateAsset(id, data);
-      return validateApiResponse(response);
+  const queryClient = useQueryClient();
+
+  return useBaseMutation(
+    async ({ id, data }: { id: string; data: AssetUpdateData }) => {
+      return await assetApiService.updateAsset(id, data);
     },
     {
-      successMessage: "Asset updated successfully!",
-      errorMessage: "Failed to update asset. Please try again.",
-      invalidateQueries: [
-        [...QueryKeys.assets.lists()],
-        [...QueryKeys.assets.details()],
-      ],
+      onSuccess: (asset: Asset) => {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.assets.all] });
+        queryClient.invalidateQueries({
+          queryKey: QueryKeys.assets.detail(asset.id),
+        });
+        toast.success(`Asset "${asset.name}" updated successfully`);
+      },
+      onError: (error: ApiError) => {
+        toast.error(`Failed to update asset: ${error.message}`);
+      },
     }
   );
 }
 
 // Delete asset mutation
-export function useDeleteAsset(options?: {
-  onSuccess?: () => void;
-  onError?: (error: ApiError) => void;
-}) {
-  let isDeleting = false;
+export function useDeleteAsset() {
+  const queryClient = useQueryClient();
 
   return useBaseMutation(
     async (id: string) => {
-      if (isDeleting) {
-        throw new Error("Delete operation already in progress");
-      }
-
-      isDeleting = true;
-
-      try {
-        const response = await assetApiService.deleteAsset(id);
-        const result = validateApiResponse(response);
-
-        return result;
-      } catch (error) {
-        console.log("[useDeleteAsset] API call failed:", error);
-        throw error;
-      } finally {
-        setTimeout(() => {
-          isDeleting = false;
-          console.log("[useDeleteAsset] Reset isDeleting flag");
-        }, 100);
-      }
+      await assetApiService.deleteAsset(id);
+      return id;
     },
     {
-      successMessage: "Asset deleted successfully",
-      invalidateQueries: [["assets"]],
-      onSuccess: () => {
-        options?.onSuccess?.();
+      onSuccess: (deletedId: string) => {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.assets.all] });
+        queryClient.removeQueries({
+          queryKey: QueryKeys.assets.detail(deletedId),
+        });
+        toast.success("Asset deleted successfully");
       },
-      onError: error => {
-        options?.onError?.(error);
+      onError: (error: ApiError) => {
+        toast.error(`Failed to delete asset: ${error.message}`);
       },
-    }
-  );
-}
-
-// Move asset mutation
-export function useMoveAsset() {
-  return useBaseMutation<
-    AssetMovement,
-    { id: string; locationId: string; notes?: string }
-  >(
-    async ({ id, locationId, notes }) => {
-      const response = await assetApiService.moveAsset(id, {
-        locationId,
-        notes,
-      });
-      return validateApiResponse(response);
-    },
-    {
-      successMessage: "Asset moved successfully!",
-      errorMessage: "Failed to move asset. Please try again.",
-      invalidateQueries: [
-        [...QueryKeys.assets.lists()],
-        [...QueryKeys.assets.details()],
-      ],
-    }
-  );
-}
-
-// Assign asset mutation
-export function useAssignAsset() {
-  return useBaseMutation<
-    Asset,
-    { id: string; assignedTo: string; notes?: string }
-  >(
-    async ({ id, assignedTo, notes }) => {
-      const response = await assetApiService.assignAsset(id, {
-        assignedTo,
-        notes,
-      });
-      return validateApiResponse(response);
-    },
-    {
-      successMessage: "Asset assigned successfully!",
-      errorMessage: "Failed to assign asset. Please try again.",
-      invalidateQueries: [
-        [...QueryKeys.assets.lists()],
-        [...QueryKeys.assets.details()],
-      ],
-    }
-  );
-}
-
-// Unassign asset mutation
-export function useUnassignAsset() {
-  return useBaseMutation<Asset, { id: string; notes?: string }>(
-    async ({ id, notes }) => {
-      const response = await assetApiService.unassignAsset(id, notes);
-      return validateApiResponse(response);
-    },
-    {
-      successMessage: "Asset unassigned successfully!",
-      errorMessage: "Failed to unassign asset. Please try again.",
-      invalidateQueries: [
-        [...QueryKeys.assets.lists()],
-        [...QueryKeys.assets.details()],
-      ],
-    }
-  );
-}
-
-// Update asset status mutation
-export function useUpdateAssetStatus() {
-  return useBaseMutation<Asset, { id: string; status: string; notes?: string }>(
-    async ({ id, status, notes }) => {
-      const response = await assetApiService.updateAssetStatus(id, {
-        status,
-        notes,
-      });
-      return validateApiResponse(response);
-    },
-    {
-      successMessage: "Asset status updated successfully!",
-      errorMessage: "Failed to update asset status. Please try again.",
-      invalidateQueries: [
-        [...QueryKeys.assets.lists()],
-        [...QueryKeys.assets.details()],
-      ],
-    }
-  );
-}
-
-// Update asset condition mutation
-export function useUpdateAssetCondition() {
-  return useBaseMutation<
-    Asset,
-    { id: string; condition: string; notes?: string }
-  >(
-    async ({ id, condition, notes }) => {
-      const response = await assetApiService.updateAssetCondition(id, {
-        condition,
-        notes,
-      });
-      return validateApiResponse(response);
-    },
-    {
-      successMessage: "Asset condition updated successfully!",
-      errorMessage: "Failed to update asset condition. Please try again.",
-      invalidateQueries: [
-        [...QueryKeys.assets.lists()],
-        [...QueryKeys.assets.details()],
-      ],
     }
   );
 }
 
 // Get asset categories
 export function useAssetCategories() {
-  return useBaseQuery(
-    QueryKeys.assets.categories(),
-    async () => {
-      const response = await assetApiService.getAssetCategories();
-      return validateApiResponse(response);
-    },
-    {
-      staleTime: 10 * 60 * 1000, // 10 minutes
-    }
-  );
+  return useBaseQuery(QueryKeys.assets.categories(), async () => {
+    return await assetApiService.getAssetCategories();
+  });
 }
 
 // Get asset locations
 export function useAssetLocations() {
-  return useBaseQuery(
-    QueryKeys.assets.locations(),
-    async () => {
-      const response = await assetApiService.getAssetLocations();
-      return validateApiResponse(response);
+  return useBaseQuery(QueryKeys.assets.locations(), async () => {
+    return await assetApiService.getAssetLocations();
+  });
+}
+
+// Move asset mutation
+export function useMoveAsset() {
+  const queryClient = useQueryClient();
+
+  return useBaseMutation(
+    async ({
+      id,
+      locationId,
+      notes,
+    }: {
+      id: string;
+      locationId: string;
+      notes?: string;
+    }) => {
+      return await assetApiService.moveAsset(id, locationId, notes);
     },
     {
-      staleTime: 10 * 60 * 1000, // 10 minutes
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.assets.all] });
+        toast.success("Asset moved successfully");
+      },
+      onError: (error: ApiError) => {
+        toast.error(`Failed to move asset: ${error.message}`);
+      },
     }
   );
 }
 
-// Get asset movements
-export function useAssetMovements(id: string) {
-  return useBaseQuery(
-    [...QueryKeys.assets.detail(id), "movements"],
-    async () => {
-      const response = await assetApiService.getAssetMovements(id);
-      return validateApiResponse(response);
+// Assign asset mutation
+export function useAssignAsset() {
+  const queryClient = useQueryClient();
+
+  return useBaseMutation(
+    async ({
+      id,
+      assignedToId,
+      notes,
+    }: {
+      id: string;
+      assignedToId: string;
+      notes?: string;
+    }) => {
+      return await assetApiService.assignAsset(id, assignedToId, notes);
     },
     {
-      enabled: !!id,
+      onSuccess: (asset: Asset) => {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.assets.all] });
+        queryClient.invalidateQueries({
+          queryKey: QueryKeys.assets.detail(asset.id),
+        });
+        toast.success("Asset assigned successfully");
+      },
+      onError: (error: ApiError) => {
+        toast.error(`Failed to assign asset: ${error.message}`);
+      },
     }
   );
 }
 
-// Get asset work orders
-export function useAssetWorkOrders(id: string) {
-  return useBaseQuery(
-    [...QueryKeys.assets.detail(id), "work-orders"],
-    async () => {
-      const response = await assetApiService.getAssetWorkOrders(id);
-      return validateApiResponse(response);
-    },
-    {
-      enabled: !!id,
-    }
-  );
-}
+// Unassign asset mutation
+export function useUnassignAsset() {
+  const queryClient = useQueryClient();
 
-// Generate asset QR code
-export function useGenerateAssetQrCode() {
-  return useBaseMutation<{ qrCode: string; qrCodeUrl: string }, string>(
-    async id => {
-      const response = await assetApiService.generateAssetQrCode(id);
-      return validateApiResponse(response);
+  return useBaseMutation(
+    async ({ id, notes }: { id: string; notes?: string }) => {
+      return await assetApiService.unassignAsset(id, notes);
     },
     {
-      successMessage: "QR code generated successfully!",
-      errorMessage: "Failed to generate QR code. Please try again.",
-    }
-  );
-}
-
-// Get asset depreciation
-export function useAssetDepreciation(id: string) {
-  return useBaseQuery(
-    [...QueryKeys.assets.detail(id), "depreciation"],
-    async () => {
-      const response = await assetApiService.getAssetDepreciation(id);
-      return validateApiResponse(response);
-    },
-    {
-      enabled: !!id,
+      onSuccess: (asset: Asset) => {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.assets.all] });
+        queryClient.invalidateQueries({
+          queryKey: QueryKeys.assets.detail(asset.id),
+        });
+        toast.success("Asset unassigned successfully");
+      },
+      onError: (error: ApiError) => {
+        toast.error(`Failed to unassign asset: ${error.message}`);
+      },
     }
   );
 }

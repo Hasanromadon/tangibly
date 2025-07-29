@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { securityLogger } from "@/lib/security-logger";
 import { rateLimit } from "@/middleware/rate-limit";
-import { SecurityEventType } from "@/config/security";
+import { SecurityEventType } from "@/types/security";
 
 export async function POST(request: NextRequest) {
   try {

@@ -5,7 +5,6 @@ import {
   AssetLocation as Location,
   AssetMovement,
   WorkOrder,
-  AssetDepreciation,
 } from "@/types";
 import { QueryOptions } from "@/types/common";
 import {
@@ -13,6 +12,20 @@ import {
   AssetUpdateData,
   AssetFilters,
 } from "@/types/services";
+
+// Additional types for depreciation
+interface AssetDepreciation {
+  id: string;
+  assetId: string;
+  method: string;
+  usefulLifeYears: number;
+  salvageValue: number;
+  currentValue: number;
+  accumulatedDepreciation: number;
+  monthlyDepreciation: number;
+  createdAt: string;
+  updatedAt?: string;
+}
 
 // Re-export types for convenience
 export type {

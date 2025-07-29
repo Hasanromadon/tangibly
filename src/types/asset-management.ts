@@ -436,3 +436,17 @@ export interface DashboardMetrics {
   depreciationThisMonth: number;
   complianceScore: number;
 }
+
+// Asset Depreciation Types
+export interface AssetDepreciation {
+  id: string;
+  assetId: string;
+  method: string;
+  usefulLifeYears: number;
+  salvageValue: number;
+  currentValue: number;
+  accumulatedDepreciation: number;
+  monthlyDepreciation: number;
+  createdAt: string;
+  updatedAt?: string;
+}

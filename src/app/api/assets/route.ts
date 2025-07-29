@@ -15,14 +15,8 @@ import {
 import { ZodError } from "zod";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { prisma } from "@/lib/database/prisma";
+import { generateAssetNumber } from "@/lib/asset-utils";
 import { Prisma } from "@prisma/client";
-
-// Generate unique asset number
-async function generateAssetNumber(): Promise<string> {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 5);
-  return `AST-${timestamp}-${random}`.toUpperCase();
-}
 
 /**
  * GET /api/assets
@@ -146,8 +140,10 @@ export async function POST(request: NextRequest) {
     // Validate asset data with comprehensive business rules
     const validatedData = createAssetSchema.parse(assetData);
 
-    // Generate unique asset number
-    const assetNumber = await generateAssetNumber();
+    // Generate unique asset number (fallback for now until we have company and category codes)
+    const assetNumber = validatedData.categoryId
+      ? generateAssetNumber("COMP", "CAT") // TODO: Get actual company and category codes
+      : `AST-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 5)}`.toUpperCase();
 
     // Create asset in database with transaction
     const newAsset = await prisma.$transaction(async tx => {

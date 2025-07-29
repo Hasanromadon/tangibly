@@ -1,8 +1,6 @@
-import { BaseApiService } from "@/lib/base-api-service";
+import { BaseService } from "@/lib/base-service";
+import { User, Company } from "@/types";
 import {
-  ApiResponse,
-  User,
-  Company,
   AuthResponse,
   LoginCredentials,
   RegisterData,
@@ -10,7 +8,7 @@ import {
   AcceptInvitationData,
   UserInvitation,
   VerifyInvitationResponse,
-} from "@/types";
+} from "@/types/services";
 
 // Re-export types for convenience
 export type {
@@ -26,7 +24,7 @@ export type {
 };
 
 // Authentication API service
-export class AuthApiService extends BaseApiService {
+export class AuthApiService extends BaseService {
   private readonly endpoints = {
     login: "/auth/login",
     register: "/auth/register",
@@ -38,45 +36,41 @@ export class AuthApiService extends BaseApiService {
     refreshToken: "/auth/refresh",
   } as const;
 
-  async login(
-    credentials: LoginCredentials
-  ): Promise<ApiResponse<AuthResponse>> {
+  constructor() {
+    super("/api");
+  }
+
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
     return this.post<AuthResponse>(this.endpoints.login, credentials);
   }
 
-  async register(data: RegisterData): Promise<ApiResponse<AuthResponse>> {
+  async register(data: RegisterData): Promise<AuthResponse> {
     return this.post<AuthResponse>(this.endpoints.register, data);
   }
 
-  async logout(): Promise<ApiResponse<void>> {
+  async logout(): Promise<void> {
     return this.post<void>(this.endpoints.logout);
   }
 
-  async getCurrentUser(): Promise<
-    ApiResponse<{ user: User; company: Company }>
-  > {
+  async getCurrentUser(): Promise<{ user: User; company: Company }> {
     return this.get<{ user: User; company: Company }>(this.endpoints.me);
   }
 
-  async inviteUser(data: InviteUserData): Promise<ApiResponse<UserInvitation>> {
+  async inviteUser(data: InviteUserData): Promise<UserInvitation> {
     return this.post<UserInvitation>(this.endpoints.invite, data);
   }
 
-  async acceptInvitation(
-    data: AcceptInvitationData
-  ): Promise<ApiResponse<AuthResponse>> {
+  async acceptInvitation(data: AcceptInvitationData): Promise<AuthResponse> {
     return this.post<AuthResponse>(this.endpoints.acceptInvitation, data);
   }
 
-  async verifyInvitation(
-    token: string
-  ): Promise<ApiResponse<VerifyInvitationResponse>> {
+  async verifyInvitation(token: string): Promise<VerifyInvitationResponse> {
     return this.get<VerifyInvitationResponse>(
       `${this.endpoints.verifyInvitation}?token=${token}`
     );
   }
 
-  async refreshToken(): Promise<ApiResponse<{ token: string }>> {
+  async refreshToken(): Promise<{ token: string }> {
     return this.post<{ token: string }>(this.endpoints.refreshToken);
   }
 }

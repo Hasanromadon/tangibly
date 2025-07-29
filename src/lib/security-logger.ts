@@ -1,4 +1,4 @@
-import { SecurityEvent, SecurityEventType } from "@/config/security";
+import { SecurityEvent, SecurityEventType } from "@/types/security";
 
 class SecurityLogger {
   private static instance: SecurityLogger;
