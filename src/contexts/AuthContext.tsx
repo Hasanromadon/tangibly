@@ -90,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, pathname, isLoading, router]);
 
   const login = (newToken: string, newUser: User, newCompany: Company) => {
+    console.log({ newToken, newUser, newCompany });
     localStorage.setItem("token", newToken);
     localStorage.setItem("user", JSON.stringify(newUser));
     localStorage.setItem("company", JSON.stringify(newCompany));

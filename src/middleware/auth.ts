@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getTokenFromRequest, verifyToken } from "@/lib/auth";
+import { getTokenFromRequest, verifyToken } from "@/lib/auth-utils";
 import { prisma } from "@/lib/database/prisma";
 import { unauthorizedResponse } from "@/lib/api-response";
 import { getClientIP } from "./utils";

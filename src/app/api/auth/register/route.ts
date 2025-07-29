@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/database/prisma";
-import { generateToken } from "@/lib/auth";
+import { generateToken } from "@/lib/auth-utils";
 import { companySchema, userSchema } from "@/schemas/auth-schemas";
 import { validationHelpers } from "@/lib";
 

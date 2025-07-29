@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/database/prisma";
-import { verifyPassword, generateToken } from "@/lib/auth";
+import { verifyPassword, generateToken } from "@/lib/auth-utils";
 import {
   successResponse,
   errorResponse,

@@ -26,8 +26,7 @@ export function useLogin() {
       onSuccess: async (data: AuthResponse) => {
         // Get full user and company data after login
         try {
-          const { user, company } = await authApiService.getCurrentUser();
-          login(data.token, user, company);
+          login(data.token, data.user, data.company);
           toast.success("Login successful");
           router.push("/asset-management");
         } catch {

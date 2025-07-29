@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/database/prisma";
-import { verifyToken, generateToken } from "@/lib/auth";
+import { verifyToken, generateToken } from "@/lib/auth-utils";
 import { inviteUserSchema } from "@/schemas/invite-schemas";
 import { validationHelpers } from "@/lib";
 

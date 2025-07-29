@@ -46,7 +46,7 @@ export function AcceptInvitationForm() {
   const verifyInvitation = async (token: string) => {
     try {
       const response = await invitationApiService.verifyInvitation(token);
-      if (response.success && response.data) {
+      if (response && response.data) {
         setInvitation(response.data.invitation);
         setTokenValid(true);
       } else {
