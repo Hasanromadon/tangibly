@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,8 +18,7 @@ import DeleteAssetDialog from "./DeleteAssetDialog";
 import { Search, Plus, Download } from "lucide-react";
 import { useAssets, useDeleteAsset } from "@/hooks/useAssets";
 import { useAssetTranslations } from "@/hooks/useTranslations";
-import { Asset } from "@/services/asset-api";
-import { ApiError } from "@/types";
+import { AssetEntity as Asset } from "@/types";
 
 interface AssetListProps {
   onAddAsset: () => void;
@@ -59,25 +58,7 @@ export default function AssetList({
   // Use React Query hooks
   const { data, isLoading: loading } = useAssets(queryOptions);
 
-  // Memoize delete callbacks to prevent infinite re-renders
-  const handleDeleteSuccess = useCallback(() => {
-    console.log(
-      "AssetList deleteAssetMutation onSuccess called - closing dialog"
-    );
-    // Close dialog and reset state when deletion succeeds
-    setShowDeleteDialog(false);
-    setSelectedAsset(null);
-  }, []);
-
-  const handleDeleteError = useCallback((error: ApiError) => {
-    console.error("Delete asset error:", error);
-    // Keep dialog open on error so user can try again
-  }, []);
-
-  const deleteAssetMutation = useDeleteAsset({
-    onSuccess: handleDeleteSuccess,
-    onError: handleDeleteError,
-  });
+  const deleteAssetMutation = useDeleteAsset();
 
   // Extract data from React Query response
   const assets = data?.data || [];
@@ -238,7 +219,7 @@ export default function AssetList({
       <ViewAssetDialog
         open={showViewDialog}
         onClose={handleCloseViewDialog}
-        asset={selectedAsset}
+        asset={selectedAsset || undefined}
       />
 
       {/* Delete Asset Dialog */}

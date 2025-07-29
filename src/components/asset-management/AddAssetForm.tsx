@@ -84,8 +84,33 @@ export default function AddAssetForm({
         data as Record<string, unknown>
       );
 
-      console.log("Submitting asset data:", submitData);
-      await createAssetMutation.createAssetAsync(submitData);
+      // Ensure required fields are present for AssetCreateData
+      const createData = {
+        ...submitData,
+        categoryId: submitData.categoryId || "",
+        locationId: submitData.locationId || "",
+        serialNumber: submitData.serialNumber || "",
+        // Ensure status field matches AssetCreateData type
+        status: submitData.status as
+          | "active"
+          | "inactive"
+          | "maintenance"
+          | "disposed"
+          | undefined,
+        // Ensure condition field matches AssetCreateData type
+        condition:
+          submitData.condition === "damaged"
+            ? "poor"
+            : (submitData.condition as
+                | "excellent"
+                | "good"
+                | "fair"
+                | "poor"
+                | undefined),
+      };
+
+      console.log("Submitting asset data:", createData);
+      await createAssetMutation.mutateAsync(createData);
 
       // Show success message
       toast.success(t("createSuccess"));

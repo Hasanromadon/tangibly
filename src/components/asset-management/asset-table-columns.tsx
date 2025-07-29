@@ -22,7 +22,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useAssetTranslations } from "@/hooks/useTranslations";
-import { Asset } from "@/services/asset-api";
+import { AssetEntity as Asset } from "@/types";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import {
   getAssetStatusBadgeVariant,
@@ -99,11 +99,11 @@ export function createAssetColumns(
         );
       },
       cell: ({ row }) => {
-        const category = row.original.category;
-        return category ? (
+        const categoryId = row.original.categoryId;
+        return categoryId ? (
           <div className="flex items-center">
             <Package className="mr-2 h-4 w-4 text-gray-400" />
-            {category.name}
+            {categoryId}
           </div>
         ) : (
           "-"
@@ -111,14 +111,14 @@ export function createAssetColumns(
       },
     },
     {
-      accessorKey: "location",
+      accessorKey: "locationId",
       header: t("table.location"),
       cell: ({ row }) => {
-        const location = row.original.location;
-        return location ? (
+        const locationId = row.original.locationId;
+        return locationId ? (
           <div className="flex items-center">
             <MapPin className="mr-2 h-4 w-4 text-gray-400" />
-            {location.name}
+            {locationId}
           </div>
         ) : (
           "-"
@@ -126,14 +126,14 @@ export function createAssetColumns(
       },
     },
     {
-      accessorKey: "assignee",
+      accessorKey: "assignedTo",
       header: t("table.assignee"),
       cell: ({ row }) => {
-        const assignee = row.original.assignee;
-        return assignee ? (
+        const assignedTo = row.original.assignedTo;
+        return assignedTo ? (
           <div className="flex items-center">
             <User className="mr-2 h-4 w-4 text-gray-400" />
-            {assignee.firstName} {assignee.lastName}
+            {assignedTo}
           </div>
         ) : (
           "-"

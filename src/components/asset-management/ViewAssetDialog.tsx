@@ -23,7 +23,7 @@ import {
   Move,
 } from "lucide-react";
 import { useAssetTranslations } from "@/hooks/useTranslations";
-import { Asset } from "@/types/entities";
+import { AssetEntity as Asset } from "@/types";
 import { formatCurrency, formatDate, dateFormatters } from "@/lib/formatters";
 import {
   getAssetStatusBadgeVariant,
@@ -144,7 +144,7 @@ export default function ViewAssetDialog({
                         <p className="text-muted-foreground text-sm font-medium">
                           {t("table.category")}
                         </p>
-                        <p>{asset.category?.name || "-"}</p>
+                        <p>{asset.categoryId || "-"}</p>
                       </div>
                     </div>
                     {asset.description && (

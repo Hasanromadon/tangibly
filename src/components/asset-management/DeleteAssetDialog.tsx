@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { useAssetTranslations } from "@/hooks/useTranslations";
-import { Asset } from "@/types/entities";
+import { AssetEntity as Asset } from "@/types";
 
 interface DeleteAssetDialogProps {
   open: boolean;
@@ -98,11 +98,11 @@ export default function DeleteAssetDialog({
               </p>
               <p>
                 <span className="font-medium">{t("table.category")}:</span>{" "}
-                {asset.category?.name || "-"}
+                {asset.categoryId || "-"}
               </p>
               <p>
                 <span className="font-medium">{t("table.location")}:</span>{" "}
-                {asset.location?.name || "-"}
+                {asset.locationId || "-"}
               </p>
             </div>
           </div>

@@ -35,7 +35,7 @@ import { transformFormToApiData, dateUtils } from "@/types/asset-types";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { useAssetTranslations } from "@/hooks/useTranslations";
 import { toast } from "sonner";
-import { Asset } from "@/types/entities";
+import { AssetEntity as Asset } from "@/types";
 import { useEffect } from "react";
 
 interface EditAssetFormProps {
@@ -90,11 +90,6 @@ export default function EditAssetForm({
   // Populate form when asset data is available
   useEffect(() => {
     if (asset && open) {
-      // Use the date utility function for proper format conversion
-      const formatDate = (date: string | null) => {
-        return dateUtils.isoToDateTimeLocal(date);
-      };
-
       form.reset({
         name: asset.name || "",
         description: asset.description || "",
@@ -106,10 +101,14 @@ export default function EditAssetForm({
         condition: asset.condition || "good",
         criticality: asset.criticality || "medium",
         purchaseCost: asset.purchaseCost?.toString() || "",
-        purchaseDate: formatDate(asset.purchaseDate || null),
+        purchaseDate: (dateUtils.isoToDateTimeLocal(
+          asset.purchaseDate?.toISOString()
+        ) || "") as "" | Date | undefined,
         purchaseOrderNumber: asset.purchaseOrderNumber || "",
         invoiceNumber: asset.invoiceNumber || "",
-        warrantyExpiresAt: formatDate(asset.warrantyExpiresAt || null),
+        warrantyExpiresAt: (dateUtils.isoToDateTimeLocal(
+          asset.warrantyExpiresAt?.toISOString()
+        ) || "") as "" | Date | undefined,
         salvageValue: asset.salvageValue?.toString() || "0",
         depreciationMethod: asset.depreciationMethod || "straight_line",
         usefulLifeYears: asset.usefulLifeYears?.toString() || "",
@@ -133,10 +132,32 @@ export default function EditAssetForm({
         data as Record<string, unknown>
       );
 
-      console.log("Updating asset data:", submitData);
+      // Convert AssetCreateRequest to AssetUpdateData format
+      const updateData = {
+        ...submitData,
+        // Ensure status field matches AssetUpdateData type
+        status: submitData.status as
+          | "active"
+          | "inactive"
+          | "maintenance"
+          | "disposed"
+          | undefined,
+        // Ensure condition field matches AssetUpdateData type
+        condition:
+          submitData.condition === "damaged"
+            ? "poor"
+            : (submitData.condition as
+                | "excellent"
+                | "good"
+                | "fair"
+                | "poor"
+                | undefined),
+      };
+
+      console.log("Updating asset data:", updateData);
       await updateAssetMutation.mutateAsync({
         id: asset.id,
-        data: submitData,
+        data: updateData,
       });
 
       // Show success message
@@ -442,7 +463,13 @@ export default function EditAssetForm({
                     <FormItem>
                       <FormLabel>{t("fields.purchaseDate")}</FormLabel>
                       <FormControl>
-                        <Input type="datetime-local" {...field} />
+                        <Input
+                          type="datetime-local"
+                          {...field}
+                          value={
+                            typeof field.value === "string" ? field.value : ""
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -492,7 +519,13 @@ export default function EditAssetForm({
                     <FormItem>
                       <FormLabel>{t("fields.warrantyExpires")}</FormLabel>
                       <FormControl>
-                        <Input type="datetime-local" {...field} />
+                        <Input
+                          type="datetime-local"
+                          {...field}
+                          value={
+                            typeof field.value === "string" ? field.value : ""
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
