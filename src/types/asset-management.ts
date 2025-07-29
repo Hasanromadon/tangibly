@@ -134,10 +134,10 @@ export interface Asset {
 
   // Financial Information (Indonesian PSAK standards)
   purchaseCost?: number;
-  purchaseDate?: Date;
+  purchaseDate?: string;
   purchaseOrderNumber?: string;
   invoiceNumber?: string;
-  warrantyExpiresAt?: Date;
+  warrantyExpiresAt?: string;
 
   // Depreciation (PSAK 16 compliant)
   depreciationMethod:

@@ -74,6 +74,7 @@
     "companies": "Companies"
   },
   "common": {
+    "Attachments": "Attachments",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -229,7 +230,13 @@
       "enterUsefulLifeYears": "Enter useful life in years",
       "enterEnergyRating": "Enter energy rating",
       "enterCarbonFootprint": "Enter carbon footprint",
-      "enterNotes": "Enter additional notes"
+      "enterNotes": "Enter additional notes",
+      "enterWarrantyExpiresAt": "Enter warranty expiration date",
+      "enterLastAuditDate": "Enter last audit date",
+      "enterNextAuditDate": "Enter next audit date",
+      "enterImageUrls": "Enter image URLs (comma-separated)",
+      "enterDocumentUrls": "Enter document URLs (comma-separated)",
+      "enterAttachments": "Enter attachments (comma-separated)"
     },
     "filters": {
       "status": "Status",
@@ -237,6 +244,10 @@
       "location": "Location"
     },
     "fields": {
+      "depreciation": "Depreciation",
+      "accumulatedDepreciation": "Accumulated Depreciation",
+      "bookValue": "Book Value",
+      "complianceAndAudit": "Compliant & Audit",
       "additionalNotes": "Additional Notes",
       "name": "Asset Name",
       "brand": "Brand",
@@ -275,7 +286,9 @@
       "energyRating": "Energy Rating",
       "carbonFootprint": "Carbon Footprint",
       "recyclable": "Recyclable",
-      "notes": "Notes"
+      "notes": "Notes",
+      "lastAuditDate": "Last Audit Date",
+      "nextAuditDate": "Next Audit Date"
     },
     "status": {
       "active": "Active",
@@ -311,7 +324,10 @@
       "selectStatus": "Select status",
       "selectCondition": "Select condition",
       "selectCriticality": "Select criticality",
-      "selectDepreciationMethod": "Select depreciation method"
+      "selectDepreciationMethod": "Select depreciation method",
+      "selectPurchaseDate": "Select purchase date",
+      "selectWarrantyExpires": "Select warranty expiration date",
+      "selectSecurityClassification": "Select security classification"
     }
   },
   "companies": {
@@ -327,6 +343,9 @@
     "stats": "Statistics",
     "fields": {
       "name": "Company Name",
+      "imageUrls": "Image URLs (comma-separated)",
+      "documentUrls": "Document URLs (comma-separated)",
+      "attachments": "Attachments",
       "code": "Company Code",
       "email": "Email",
       "phone": "Phone",

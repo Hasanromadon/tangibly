@@ -16,7 +16,13 @@ export {
   SECURITY_CLASSIFICATION,
 };
 
-// Base asset validation schema
+const optionalUUID = z
+  .string()
+  .uuid("Invalid UUID")
+  .or(z.literal("").transform(() => undefined))
+  .optional();
+
+// Base asset validation schema - remains largely the same
 export const baseAssetSchema = z.object({
   // Required fields
   name: z
@@ -41,13 +47,13 @@ export const baseAssetSchema = z.object({
     .transform(val => val?.trim() || undefined),
 
   // Relations (UUIDs)
-  categoryId: z.string().uuid("Invalid category ID").optional(),
-  locationId: z.string().uuid("Invalid location ID").optional(),
-  vendorId: z.string().uuid("Invalid vendor ID").optional(),
-  assignedTo: z.string().uuid("Invalid assignee ID").optional(),
+  categoryId: optionalUUID,
+  locationId: optionalUUID,
+  vendorId: optionalUUID,
+  assignedTo: optionalUUID,
 
   // Financial Information with proper validation
-  purchaseCost: z
+  purchaseCost: z.coerce
     .number()
     .min(0, "Purchase cost cannot be negative")
     .max(999999999.99, "Purchase cost too large")
@@ -75,13 +81,13 @@ export const baseAssetSchema = z.object({
   depreciationMethod: z
     .enum(Object.values(DEPRECIATION_METHOD) as [string, ...string[]])
     .default(DEPRECIATION_METHOD.STRAIGHT_LINE),
-  usefulLifeYears: z
+  usefulLifeYears: z.coerce
     .number()
     .int("Useful life must be a whole number")
     .min(1, "Useful life must be at least 1 year")
     .max(100, "Useful life cannot exceed 100 years")
     .optional(),
-  salvageValue: z
+  salvageValue: z.coerce
     .number()
     .min(0, "Salvage value cannot be negative")
     .max(999999999.99, "Salvage value too large")
@@ -100,7 +106,7 @@ export const baseAssetSchema = z.object({
 
   // Environmental compliance (ISO 14001)
   energyRating: z.string().max(10, "Energy rating too long").optional(),
-  carbonFootprint: z
+  carbonFootprint: z.coerce
     .number()
     .min(0, "Carbon footprint cannot be negative")
     .optional(),
@@ -133,16 +139,48 @@ export const baseAssetSchema = z.object({
 
   // Security classification (ISO 27001)
   securityClassification: z
-    .enum(["public", "internal", "confidential", "restricted"])
-    .default("internal"),
+    .enum(Object.values(SECURITY_CLASSIFICATION) as [string, ...string[]]) // Use the imported enum
+    .default(SECURITY_CLASSIFICATION.INTERNAL),
 
   // Company association and metadata
   companyId: z.string().uuid("Invalid company ID").optional(),
   notes: z.string().max(2000, "Notes too long").optional(),
 
+  //bookValue
+  bookValue: z.coerce
+    .number()
+    .min(0, "Book value cannot be negative")
+    .optional(),
+  accumulatedDepreciation: z.coerce
+    .number()
+    .min(0, "Accumulated depreciation cannot be negative")
+    .default(0),
+
+  //compliance
+  lastAuditDate: z
+    .string()
+    .datetime({ message: "Invalid last audit date" })
+    .optional()
+    .or(z.literal("")),
+  nextAuditDate: z
+    .string()
+    .datetime({ message: "Invalid next audit date" })
+    .optional()
+    .or(z.literal("")),
+  complianceStatus: z
+    .enum(["compliant", "non-compliant", "pending"])
+    .default("compliant"),
+
+  //media and documents
+  images: z.array(z.string().url("Invalid image URL")).default([]),
+  documents: z.array(z.string().url("Invalid document URL")).default([]),
   // Custom fields and tags
   tags: z.array(z.string().max(50, "Tag too long")).default([]),
   customFields: z.record(z.string(), z.any()).default({}),
+
+  // Metadata
+  createdBy: z.string().uuid("Invalid createdBy ID").optional(),
+  updatedBy: z.string().uuid("Invalid updatedBy ID").optional(),
 });
 
 // Create asset schema with refined validation
@@ -181,7 +219,14 @@ export const createAssetSchema = baseAssetSchema
     data => {
       // Warranty expiry should be after purchase date
       if (data.purchaseDate && data.warrantyExpiresAt) {
-        return new Date(data.warrantyExpiresAt) > new Date(data.purchaseDate);
+        // Ensure dates are valid before comparison
+        const purchaseDate = new Date(data.purchaseDate);
+        const warrantyDate = new Date(data.warrantyExpiresAt);
+        return (
+          !isNaN(purchaseDate.getTime()) &&
+          !isNaN(warrantyDate.getTime()) &&
+          warrantyDate > purchaseDate
+        );
       }
       return true;
     },
@@ -191,67 +236,17 @@ export const createAssetSchema = baseAssetSchema
     }
   );
 
-// Form-specific schema for react-hook-form (with string inputs)
-export const assetFormSchema = z
-  .object({
-    // Basic Information
-    name: z
-      .string()
-      .min(1, "Asset name is required")
-      .max(255, "Asset name must be less than 255 characters")
-      .trim(),
-    description: z.string().optional(),
-    brand: z.string().optional(),
-    model: z.string().optional(),
-    serialNumber: z.string().optional(),
-    barcode: z.string().optional(),
-
-    // Status fields
-    status: z
-      .enum(Object.values(ASSET_STATUS) as [string, ...string[]])
-      .default(ASSET_STATUS.ACTIVE),
-    condition: z
-      .enum(Object.values(ASSET_CONDITION) as [string, ...string[]])
-      .default(ASSET_CONDITION.GOOD),
-    criticality: z
-      .enum(Object.values(ASSET_CRITICALITY) as [string, ...string[]])
-      .default(ASSET_CRITICALITY.MEDIUM),
-
-    // Financial Information with proper date handling
-    purchaseCost: z.string().optional(),
-    purchaseDate: z.date().optional().or(z.literal("")),
-    purchaseOrderNumber: z.string().optional(),
-    invoiceNumber: z.string().optional(),
-    warrantyExpiresAt: z.date().optional().or(z.literal("")),
-    salvageValue: z.string().default("0"),
-
-    // Depreciation
-    depreciationMethod: z
-      .enum(Object.values(DEPRECIATION_METHOD) as [string, ...string[]])
-      .default(DEPRECIATION_METHOD.STRAIGHT_LINE),
-    usefulLifeYears: z.string().optional(),
-
-    // IT Asset Information
-    ipAddress: z.string().optional(),
-    macAddress: z.string().optional(),
-    operatingSystem: z.string().optional(),
-    securityClassification: z
-      .enum(["public", "internal", "confidential", "restricted"])
-      .default("public"),
-
-    // Environmental Information
-    energyRating: z.string().optional(),
-    carbonFootprint: z.string().optional(),
-    recyclable: z.boolean().default(false),
-
-    // Notes
-    notes: z.string().optional(),
+// Update asset schema: Extend baseAssetSchema and make all fields optional
+// except for 'id', which is required for an update operation.
+export const updateAssetSchema = baseAssetSchema
+  .extend({
+    id: z.string().uuid("Asset ID is required for update"), // ID is essential for identifying the asset to update
   })
+  .partial() // Makes all fields from baseAssetSchema optional for update
   .refine(
     data => {
-      // If purchase cost is provided, purchase date should also be provided
-      const purchaseCost = data.purchaseCost ? Number(data.purchaseCost) : 0;
-      if (purchaseCost > 0 && !data.purchaseDate) {
+      // If purchase cost is provided, purchase date should also be provided (same as create)
+      if (data.purchaseCost && data.purchaseCost > 0 && !data.purchaseDate) {
         return false;
       }
       return true;
@@ -263,10 +258,12 @@ export const assetFormSchema = z
   )
   .refine(
     data => {
-      // Salvage value cannot exceed purchase cost
-      const purchaseCost = data.purchaseCost ? Number(data.purchaseCost) : 0;
-      const salvageValue = Number(data.salvageValue) || 0;
-      if (purchaseCost > 0 && salvageValue > purchaseCost) {
+      // Salvage value cannot exceed purchase cost (same as create)
+      if (
+        data.purchaseCost &&
+        data.salvageValue &&
+        data.salvageValue > data.purchaseCost
+      ) {
         return false;
       }
       return true;
@@ -275,12 +272,26 @@ export const assetFormSchema = z
       message: "Salvage value cannot exceed purchase cost",
       path: ["salvageValue"],
     }
+  )
+  .refine(
+    data => {
+      // Warranty expiry should be after purchase date (same as create)
+      if (data.purchaseDate && data.warrantyExpiresAt) {
+        const purchaseDate = new Date(data.purchaseDate);
+        const warrantyDate = new Date(data.warrantyExpiresAt);
+        return (
+          !isNaN(purchaseDate.getTime()) &&
+          !isNaN(warrantyDate.getTime()) &&
+          warrantyDate > purchaseDate
+        );
+      }
+      return true;
+    },
+    {
+      message: "Warranty expiry must be after purchase date",
+      path: ["warrantyExpiresAt"],
+    }
   );
-
-export type AssetFormData = z.infer<typeof assetFormSchema>;
-
-// Update asset schema (allows partial updates)
-export const updateAssetSchema = baseAssetSchema.partial();
 
 // Asset query/filter schema
 export const assetQuerySchema = z.object({
@@ -343,8 +354,9 @@ export const assetMaintenanceSchema = z.object({
 });
 
 // TypeScript types derived from schemas
+
 export type CreateAssetData = z.infer<typeof createAssetSchema>;
-export type UpdateAssetData = z.infer<typeof updateAssetSchema>;
+export type UpdateAssetData = z.infer<typeof updateAssetSchema>; // New type for update
 export type AssetQueryParams = z.infer<typeof assetQuerySchema>;
 export type AssetMovementData = z.infer<typeof assetMovementSchema>;
 export type AssetAssignmentData = z.infer<typeof assetAssignmentSchema>;

@@ -19,6 +19,7 @@ import { Search, Plus, Download } from "lucide-react";
 import { useAssets, useDeleteAsset } from "@/hooks/useAssets";
 import { useAssetTranslations } from "@/hooks/useTranslations";
 import { AssetEntity as Asset } from "@/types";
+import { toast } from "sonner";
 
 interface AssetListProps {
   onAddAsset: () => void;
@@ -87,21 +88,22 @@ export default function AssetList({
   };
 
   // Confirm delete action
-  const handleConfirmDelete = () => {
-    console.log("handleConfirmDelete called", {
-      selectedAsset: selectedAsset?.id,
-      isPending: deleteAssetMutation.isPending,
-      timestamp: new Date().toISOString(),
-    });
+  const handleConfirmDelete = async () => {
+    try {
+      console.log("handleConfirmDelete called with asset:", selectedAsset);
+      if (!selectedAsset) {
+        console.error("No asset selected for deletion");
+        return;
+      }
 
-    if (!selectedAsset || deleteAssetMutation.isPending) {
-      console.log("handleConfirmDelete early return");
-      return;
+      // Call the mutation directly
+      await deleteAssetMutation.mutateAsync(selectedAsset.id);
+      setShowDeleteDialog(false);
+      setSelectedAsset(null);
+      toast.success(t("assetDeletedSuccessfully"));
+    } catch (error) {
+      toast.error(t("failedToDeleteAsset"));
     }
-
-    console.log("Calling deleteAssetMutation.mutate with:", selectedAsset.id);
-    // Just call the mutation, let the hook handle success/error
-    deleteAssetMutation.mutate(selectedAsset.id);
   };
 
   // Close dialogs

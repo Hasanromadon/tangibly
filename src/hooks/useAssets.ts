@@ -6,7 +6,6 @@ import {
 } from "@/services/asset-api";
 import { useBaseMutation, useBaseQuery, QueryKeys } from "@/hooks/base-hooks";
 import { QueryOptions, ApiError } from "@/types/common";
-import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 // Get paginated assets list
@@ -46,10 +45,10 @@ export function useCreateAsset() {
     {
       onSuccess: (asset: Asset) => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.assets.all] });
-        toast.success(`Asset "${asset.name}" created successfully`);
+        return asset;
       },
       onError: (error: ApiError) => {
-        toast.error(`Failed to create asset: ${error.message}`);
+        throw new Error(`Failed to create asset: ${error.message}`);
       },
     }
   );
@@ -74,10 +73,10 @@ export function useUpdateAsset() {
         queryClient.invalidateQueries({
           queryKey: QueryKeys.assets.detail(asset.id),
         });
-        toast.success(`Asset "${asset.name}" updated successfully`);
+        return asset;
       },
       onError: (error: ApiError) => {
-        toast.error(`Failed to update asset: ${error.message}`);
+        throw new Error(`Failed to update asset: ${error.message}`);
       },
     }
   );
@@ -98,10 +97,10 @@ export function useDeleteAsset() {
         queryClient.removeQueries({
           queryKey: QueryKeys.assets.detail(deletedId),
         });
-        toast.success("Asset deleted successfully");
+        return deletedId;
       },
       onError: (error: ApiError) => {
-        toast.error(`Failed to delete asset: ${error.message}`);
+        throw new Error(`Failed to delete asset: ${error.message}`);
       },
     }
   );
@@ -140,10 +139,10 @@ export function useMoveAsset() {
     {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.assets.all] });
-        toast.success("Asset moved successfully");
+        return "Asset moved successfully";
       },
       onError: (error: ApiError) => {
-        toast.error(`Failed to move asset: ${error.message}`);
+        throw new Error(`Failed to move asset: ${error.message}`);
       },
     }
   );
@@ -171,10 +170,10 @@ export function useAssignAsset() {
         queryClient.invalidateQueries({
           queryKey: QueryKeys.assets.detail(asset.id),
         });
-        toast.success("Asset assigned successfully");
+        return asset;
       },
       onError: (error: ApiError) => {
-        toast.error(`Failed to assign asset: ${error.message}`);
+        throw new Error(`Failed to assign asset: ${error.message}`);
       },
     }
   );
@@ -194,10 +193,10 @@ export function useUnassignAsset() {
         queryClient.invalidateQueries({
           queryKey: QueryKeys.assets.detail(asset.id),
         });
-        toast.success("Asset unassigned successfully");
+        return "Asset unassigned successfully";
       },
       onError: (error: ApiError) => {
-        toast.error(`Failed to unassign asset: ${error.message}`);
+        throw new Error(`Failed to unassign asset: ${error.message}`);
       },
     }
   );

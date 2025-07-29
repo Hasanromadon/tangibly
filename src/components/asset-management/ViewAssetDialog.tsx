@@ -166,7 +166,7 @@ export default function ViewAssetDialog({
                       {t("locationAndAssignment")}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  {/* <CardContent className="space-y-4">
                     <div>
                       <p className="text-muted-foreground text-sm font-medium">
                         {t("table.location")}
@@ -189,7 +189,7 @@ export default function ViewAssetDialog({
                       </p>
                       <p>-</p>
                     </div>
-                  </CardContent>
+                  </CardContent> */}
                 </Card>
               </div>
 

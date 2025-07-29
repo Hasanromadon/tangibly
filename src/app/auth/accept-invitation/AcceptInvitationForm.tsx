@@ -46,12 +46,12 @@ export function AcceptInvitationForm() {
   const verifyInvitation = async (token: string) => {
     try {
       const response = await invitationApiService.verifyInvitation(token);
-      if (response && response.data) {
-        setInvitation(response.data.invitation);
-        setTokenValid(true);
-      } else {
-        setTokenValid(false);
-      }
+      // if (response && response.data) {
+      //   setInvitation(response.data.invitation);
+      //   setTokenValid(true);
+      // } else {
+      //   setTokenValid(false);
+      // }
     } catch (error) {
       console.error("Error verifying invitation:", error);
       setTokenValid(false);
@@ -115,12 +115,12 @@ export function AcceptInvitationForm() {
         password: formData.password,
       });
 
-      if (response.success) {
-        // Redirect to login page with success message
-        router.push("/auth/login?message=invitation-accepted");
-      } else {
-        setErrors({ general: response.error || t("acceptInvitationFailed") });
-      }
+      // if (response.success) {
+      //   // Redirect to login page with success message
+      //   router.push("/auth/login?message=invitation-accepted");
+      // } else {
+      //   setErrors({ general: response.error || t("acceptInvitationFailed") });
+      // }
     } catch (error) {
       console.error("Error accepting invitation:", error);
       setErrors({ general: t("generalError") });

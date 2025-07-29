@@ -35,7 +35,6 @@ export default function DeleteAssetDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const t = useAssetTranslations();
 
-  // Reset confirmation text and submitting state when dialog closes
   useEffect(() => {
     if (!open) {
       setConfirmationText("");
@@ -50,19 +49,10 @@ export default function DeleteAssetDialog({
   const isDisabled = !canDelete || isDeleting || isSubmitting;
 
   const handleConfirm = () => {
-    console.log("DeleteAssetDialog handleConfirm called", {
-      canDelete,
-      isDeleting,
-      isSubmitting,
-      timestamp: new Date().toISOString(),
-    });
-
     if (isDisabled) {
-      console.log("DeleteAssetDialog handleConfirm blocked - button disabled");
       return;
     }
 
-    console.log("Calling onConfirm from DeleteAssetDialog");
     setIsSubmitting(true);
     onConfirm();
   };

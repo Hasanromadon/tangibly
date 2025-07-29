@@ -132,6 +132,39 @@ export function TextareaField<T extends FieldValues>({
   );
 }
 
+export const NumberField = ({
+  control,
+  name,
+  label,
+  placeholder,
+  step = "0.01",
+  min,
+  required = false,
+}: any) => (
+  <FormField
+    control={control}
+    name={name}
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>
+          {label} {required && "*"}
+        </FormLabel>
+        <FormControl>
+          <Input
+            type="number"
+            step={step}
+            min={min}
+            placeholder={placeholder}
+            {...field}
+            value={field.value as number | string | undefined}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+);
+
 // Select field component
 interface SelectFieldProps<T extends FieldValues>
   extends BaseFormFieldProps<T> {

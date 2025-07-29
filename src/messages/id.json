@@ -74,6 +74,7 @@
     "companies": "Perusahaan"
   },
   "common": {
+    "Attachments": "Lampiran",
     "loading": "Memuat...",
     "save": "Simpan",
     "cancel": "Batal",
@@ -227,7 +228,12 @@
       "enterEnergyRating": "Masukkan rating energi",
       "enterCarbonFootprint": "Masukkan jejak karbon",
       "enterNotes": "Masukkan catatan tambahan",
-      "enterAnyAdditionalNotes": "Masukkan catatan tambahan jika ada"
+      "enterAnyAdditionalNotes": "Masukkan catatan tambahan jika ada",
+      "enterWarrantyExpiresAt": "Masukkan tanggal kedaluwarsa garansi",
+      "enterLastAuditDate": "Masukkan tanggal audit terakhir",
+      "enterNextAuditDate": "Masukkan tanggal audit berikutnya",
+      "enterImageUrls": "Masukkan URL gambar yang dipisahkan koma",
+      "enterDocumentUrls": "Masukkan URL dokumen yang dipisahkan koma"
     },
     "filters": {
       "status": "Status",
@@ -235,6 +241,10 @@
       "location": "Lokasi"
     },
     "fields": {
+      "depreciation": "Depresiasi",
+      "complianceAndAudit": "Kepatuhan & Audit",
+      "accumulatedDepreciation": "Akumulasi Depresiasi",
+      "bookValue": "Nilai Buku",
       "additionalNotes": "Catatan Tambahan",
       "name": "Nama Aset",
       "brand": "Merek",
@@ -273,7 +283,12 @@
       "energyRating": "Rating Energi",
       "carbonFootprint": "Jejak Karbon",
       "recyclable": "Dapat Didaur Ulang",
-      "notes": "Catatan"
+      "notes": "Catatan",
+      "lastAuditDate": "Tanggal Audit Terakhir",
+      "nextAuditDate": "Tanggal Audit Berikutnya",
+      "imageUrls": "URL (Gambar) dipisahkan koma",
+      "documentUrls": "URL (Dokumen) dipisahkan koma",
+      "attachments": "Lampiran"
     },
     "status": {
       "active": "Aktif",
@@ -309,7 +324,10 @@
       "selectStatus": "Pilih status",
       "selectCondition": "Pilih kondisi",
       "selectCriticality": "Pilih kritikalitas",
-      "selectDepreciationMethod": "Pilih metode depresiasi"
+      "selectDepreciationMethod": "Pilih metode depresiasi",
+      "selectPurchaseDate": "Pilih tanggal pembelian",
+      "selectWarrantyExpires": "Pilih tanggal kedaluwarsa garansi",
+      "selectSecurityClassification": "Pilih klasifikasi keamanan"
     }
   },
   "companies": {
