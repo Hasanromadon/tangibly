@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getTokenFromRequest, verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/database/prisma";
 import { unauthorizedResponse } from "@/lib/api-response";
+import { getClientIP } from "./utils";
 
 export interface AuthenticatedUser {
   id: string;
@@ -119,21 +120,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   ],
 };
 
-// Helper function to get client IP
-function getClientIP(request: NextRequest): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const realIP = request.headers.get("x-real-ip");
-
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
-
-  if (realIP) {
-    return realIP.trim();
-  }
-
-  return "unknown";
-}
+// Helper function to get client IP - removed duplicate, now using utils
 
 // Role normalization function to handle database role format
 export function normalizeRole(role: string): Role {

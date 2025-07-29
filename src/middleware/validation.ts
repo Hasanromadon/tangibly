@@ -1,6 +1,10 @@
+/**
+ * Validation Middleware
+ * Enhanced validation schemas with security checks using centralized utilities
+ */
 import { z } from "zod";
 import { NextRequest } from "next/server";
-import { SecurityMiddleware } from "./security";
+import { sanitizeInput, validatePasswordStrength } from "./utils";
 
 // Enhanced validation schemas with security checks
 export const secureEmailSchema = z
@@ -25,7 +29,7 @@ export const securePasswordSchema = z
   .min(8, "Password must be at least 8 characters")
   .max(128, "Password too long")
   .refine(password => {
-    const validation = SecurityMiddleware.validatePasswordStrength(password);
+    const validation = validatePasswordStrength(password);
     return validation.isValid;
   }, "Password does not meet security requirements");
 
@@ -148,8 +152,8 @@ export function createValidationMiddleware<T>(schema: z.ZodSchema<T>) {
         body = {};
       }
 
-      // Sanitize input before validation
-      const sanitizedBody = SecurityMiddleware.sanitizeInput(body);
+      // Sanitize input before validation using centralized utility
+      const sanitizedBody = sanitizeInput(body);
 
       const result = schema.safeParse(sanitizedBody);
 

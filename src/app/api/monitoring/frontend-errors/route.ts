@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { securityLogger } from "@/lib/security-logger";
-import { SecurityMiddleware } from "@/middleware/security";
+import { rateLimit } from "@/middleware/rate-limit";
 import { SecurityEventType } from "@/config/security";
 
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting for error logging
-    const rateLimitResult = SecurityMiddleware.rateLimit({
+    const rateLimitResult = rateLimit({
       windowMs: 60 * 1000, // 1 minute
       maxRequests: 30, // Allow more for error logging
     })(request);
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Apply rate limiting
-    const rateLimitResult = SecurityMiddleware.rateLimit({
+    const rateLimitResult = rateLimit({
       windowMs: 60 * 1000, // 1 minute
       maxRequests: 20,
     })(request);

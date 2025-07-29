@@ -1,4 +1,9 @@
+/**
+ * Rate Limiting Middleware
+ * Consolidated rate limiting functionality
+ */
 import { NextRequest, NextResponse } from "next/server";
+import { getClientIP } from "./utils";
 
 interface RateLimitConfig {
   windowMs: number;
@@ -13,6 +18,9 @@ const rateLimitStore = new Map<
   { count: number; resetTime: number; requests: number[] }
 >();
 
+/**
+ * Create a rate limiter with specified configuration
+ */
 export function createRateLimiter(config: RateLimitConfig) {
   return async (request: NextRequest): Promise<NextResponse | null> => {
     const ip = getClientIP(request);
@@ -92,22 +100,39 @@ export const strictRateLimit = createRateLimiter({
   message: "Rate limit exceeded for sensitive operations.",
 });
 
-function getClientIP(request: NextRequest): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const realIP = request.headers.get("x-real-ip");
-  const remoteAddr = request.headers.get("x-forwarded-host");
+/**
+ * Generic rate limiting function for middleware compatibility
+ */
+export function rateLimit(options: { windowMs: number; maxRequests: number }) {
+  return (request: NextRequest): NextResponse | null => {
+    const ip = getClientIP(request);
+    const key = `rate_limit:${ip}`;
+    const now = Date.now();
 
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
+    const existing = rateLimitStore.get(key);
 
-  if (realIP) {
-    return realIP.trim();
-  }
+    if (!existing || now > existing.resetTime) {
+      rateLimitStore.set(key, {
+        count: 1,
+        resetTime: now + options.windowMs,
+        requests: [now],
+      });
+      return null; // Allow request
+    }
 
-  if (remoteAddr) {
-    return remoteAddr.trim();
-  }
+    if (existing.count >= options.maxRequests) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Rate limit exceeded. Too many requests.",
+          retryAfter: Math.ceil((existing.resetTime - now) / 1000),
+        },
+        { status: 429 }
+      );
+    }
 
-  return "unknown";
+    existing.count++;
+    existing.requests.push(now);
+    return null; // Allow request
+  };
 }
